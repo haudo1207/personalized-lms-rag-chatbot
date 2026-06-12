@@ -1,0 +1,10 @@
+# Chuẩn hóa dữ liệu
+
+Chuẩn hóa dữ liệu là quá trình tổ chức dữ liệu để giảm dư thừa và hạn chế bất thường khi thêm, sửa hoặc xóa dữ liệu.
+
+1NF yêu cầu mỗi ô dữ liệu chứa giá trị nguyên tử.
+
+2NF yêu cầu đạt 1NF và mọi thuộc tính không khóa phụ thuộc đầy đủ vào khóa chính.
+
+3NF yêu cầu đạt 2NF và không có phụ thuộc bắc cầu giữa các thuộc tính không khóa.
+

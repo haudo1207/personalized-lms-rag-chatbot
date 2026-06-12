@@ -1,0 +1,8 @@
+# Khóa chính và khóa ngoại
+
+Khóa chính là thuộc tính hoặc tập thuộc tính dùng để định danh duy nhất mỗi bản ghi trong một bảng.
+
+Khóa ngoại là thuộc tính trong một bảng dùng để tham chiếu đến khóa chính của bảng khác.
+
+Khóa ngoại giúp biểu diễn quan hệ giữa các thực thể và hỗ trợ đảm bảo toàn vẹn tham chiếu.
+

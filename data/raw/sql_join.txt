@@ -1,0 +1,10 @@
+# SQL JOIN
+
+JOIN dùng để kết hợp dữ liệu từ nhiều bảng dựa trên điều kiện liên kết.
+
+INNER JOIN trả về các dòng có dữ liệu khớp ở cả hai bảng.
+
+LEFT JOIN trả về tất cả dòng từ bảng bên trái và dữ liệu khớp từ bảng bên phải nếu có.
+
+RIGHT JOIN trả về tất cả dòng từ bảng bên phải và dữ liệu khớp từ bảng bên trái nếu có.
+

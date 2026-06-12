@@ -1,0 +1,8 @@
+# Cơ sở dữ liệu - Chương 1
+
+Cơ sở dữ liệu là tập hợp dữ liệu có tổ chức, được lưu trữ và quản lý để có thể truy xuất, cập nhật và khai thác hiệu quả.
+
+Hệ quản trị cơ sở dữ liệu hỗ trợ định nghĩa dữ liệu, thao tác dữ liệu, kiểm soát truy cập và đảm bảo tính toàn vẹn.
+
+Các khái niệm cơ bản gồm bảng, bản ghi, thuộc tính, khóa chính, khóa ngoại và quan hệ giữa các bảng.
+

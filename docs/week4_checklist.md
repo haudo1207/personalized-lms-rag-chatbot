@@ -7,10 +7,11 @@
 - [x] Viết hàm `create_chunks`.
 - [x] Gắn metadata cho từng chunk.
 - [x] Giữ tương thích với hàm `chunk_text` cũ.
-- [ ] Test chunking bằng Python trên file trong `data/processed`.
-- [ ] Kết nối chunking với embedding service.
-- [ ] Lưu chunk vào ChromaDB.
-- [ ] Viết API retrieval.
+- [x] Test chunking bằng Python trên tài liệu upload mẫu.
+- [x] Kết nối chunking với embedding service.
+- [x] Lưu chunk vào ChromaDB.
+- [x] Viết API retrieval.
+- [x] Test flow upload -> index -> retrieval.
 
 ## Ghi chú thông số
 
@@ -24,3 +25,22 @@ Các thông số này có thể điều chỉnh sau khi test trên tài liệu t
 - Giảm `top_k` nếu kết quả retrieval bị nhiễu.
 - Tăng `overlap` nếu nội dung hay bị cắt giữa hai chunk.
 
+## Kết quả test
+
+Flow đã kiểm tra:
+
+1. Tạo user test.
+2. Tạo course test.
+3. Upload file TXT mẫu.
+4. Index document vào ChromaDB.
+5. Gọi `POST /retrieval/search` với câu hỏi: `Khoa chinh la gi?`.
+
+Kết quả:
+
+- API upload trả `201`.
+- API index trả `200`.
+- API retrieval trả `200`.
+- Retrieval trả về chunk liên quan đến khóa chính.
+- Kết quả có `document_name`, `page`, `distance`.
+
+Đánh giá hiện tại: pipeline retrieval đã đạt hiệu quả ở mức demo cơ bản. Cần test thêm với PDF/DOCX tiếng Việt thật để đánh giá độ sạch text, độ nhiễu chunk và chất lượng ranking.

@@ -8,8 +8,10 @@ from sqlalchemy.orm import Session
 
 from backend.database import get_db
 from backend.models.document import Document
+from backend.services.chunking import create_chunks
 from backend.services.document_loader import load_document
 from backend.services.text_cleaner import clean_pages
+from backend.services.vector_store import add_chunks_to_vector_store
 
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -108,3 +110,34 @@ def _write_processed_text(
         for page in cleaned_pages:
             file.write(f"\n\n--- Page {page['page']} ---\n")
             file.write(str(page["text"]))
+
+
+@router.post("/{document_id}/index")
+def index_document(document_id: int, db: Session = Depends(get_db)) -> dict[str, object]:
+    document = db.query(Document).filter(Document.id == document_id).first()
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found.")
+
+    try:
+        pages = load_document(document.file_path)
+        cleaned_pages = clean_pages(pages)
+        chunks = create_chunks(
+            document_id=document.id,
+            course_id=document.course_id,
+            document_name=document.file_name,
+            pages=cleaned_pages,
+        )
+        count = add_chunks_to_vector_store(chunks)
+    except Exception as exc:
+        document.status = "index_failed"
+        db.commit()
+        raise HTTPException(status_code=422, detail=f"Could not index document: {exc}") from exc
+
+    document.status = "indexed"
+    db.commit()
+
+    return {
+        "message": "Document indexed successfully",
+        "document_id": document.id,
+        "chunks": count,
+    }

@@ -6,6 +6,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .streamlit/secrets.toml
+logs/
 
 vector_store/*
 !vector_store/.gitkeep
@@ -18,4 +19,3 @@ data/processed/*
 data/eval/*
 !data/eval/.gitkeep
 !data/eval/*.csv
-

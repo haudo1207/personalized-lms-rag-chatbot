@@ -1,7 +1,11 @@
 import time
 
 from backend.services.llm_service import generate_answer
-from backend.services.prompt_template import INSUFFICIENT_INFORMATION_ANSWER, build_rag_prompt
+from backend.services.prompt_template import (
+    INSUFFICIENT_INFORMATION_ANSWER,
+    build_personalized_rag_prompt,
+    build_rag_prompt,
+)
 from backend.services.retriever import retrieve_relevant_chunks
 
 
@@ -16,11 +20,8 @@ def format_context(chunks: list[dict[str, object]]) -> str:
     return "\n\n".join(context_parts)
 
 
-def ask_rag(question: str, course_id: int, top_k: int = 5) -> dict[str, object]:
-    start_time = time.time()
-
-    chunks = retrieve_relevant_chunks(question=question, course_id=course_id, top_k=top_k)
-    sources = [
+def _build_sources(chunks: list[dict[str, object]]) -> list[dict[str, object]]:
+    return [
         {
             "document_name": chunk["metadata"]["document_name"],
             "page": chunk["metadata"]["page"],
@@ -29,6 +30,13 @@ def ask_rag(question: str, course_id: int, top_k: int = 5) -> dict[str, object]:
         }
         for chunk in chunks
     ]
+
+
+def ask_rag(question: str, course_id: int, top_k: int = 5) -> dict[str, object]:
+    start_time = time.time()
+
+    chunks = retrieve_relevant_chunks(question=question, course_id=course_id, top_k=top_k)
+    sources = _build_sources(chunks)
 
     if not chunks:
         latency = round(time.time() - start_time, 2)
@@ -40,6 +48,41 @@ def ask_rag(question: str, course_id: int, top_k: int = 5) -> dict[str, object]:
 
     context = format_context(chunks)
     prompt = build_rag_prompt(question=question, context=context)
+    answer = generate_answer(prompt)
+    latency = round(time.time() - start_time, 2)
+
+    return {
+        "answer": answer,
+        "sources": sources,
+        "latency": latency,
+    }
+
+
+def ask_personalized_rag(
+    question: str,
+    course_id: int,
+    user_profile: dict[str, object],
+    top_k: int = 5,
+) -> dict[str, object]:
+    start_time = time.time()
+
+    chunks = retrieve_relevant_chunks(question=question, course_id=course_id, top_k=top_k)
+    sources = _build_sources(chunks)
+
+    if not chunks:
+        latency = round(time.time() - start_time, 2)
+        return {
+            "answer": INSUFFICIENT_INFORMATION_ANSWER,
+            "sources": sources,
+            "latency": latency,
+        }
+
+    context = format_context(chunks)
+    prompt = build_personalized_rag_prompt(
+        question=question,
+        context=context,
+        user_profile=user_profile,
+    )
     answer = generate_answer(prompt)
     latency = round(time.time() - start_time, 2)
 

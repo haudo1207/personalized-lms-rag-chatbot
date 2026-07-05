@@ -5,6 +5,7 @@ from backend.models.chat_history import ChatHistory
 from backend.models.course import Course
 from backend.models.document import Document
 from backend.models.user import User
+from backend.models.weak_topic import WeakTopic
 from backend.routers import chat, courses, dashboard, documents, quiz, retrieval, users
 
 

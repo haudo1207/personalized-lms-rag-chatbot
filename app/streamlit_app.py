@@ -233,7 +233,20 @@ with right_col:
     if isinstance(chat_result, dict):
         st.markdown("#### Câu trả lời")
         st.write(chat_result.get("answer", ""))
-        st.caption(f"Thời gian phản hồi: {chat_result.get('latency', '?')} giây")
+        st.caption(
+            f"Topic: {chat_result.get('topic', 'Khác')} | "
+            f"Thời gian phản hồi: {chat_result.get('latency', '?')} giây"
+        )
+
+        if chat_result.get("weak_topic"):
+            st.warning(f"Topic yếu đang được theo dõi: {chat_result['weak_topic']}")
+
+        user_profile = chat_result.get("user_profile")
+        if isinstance(user_profile, dict):
+            with st.expander("Thông tin cá nhân hóa đã dùng"):
+                st.write(f"Trình độ: {user_profile.get('level', 'beginner')}")
+                st.write(f"Chủ đề còn yếu: {user_profile.get('weak_topics', [])}")
+                st.write(f"Câu hỏi gần đây: {user_profile.get('recent_questions', [])}")
 
         sources = chat_result.get("sources", [])
         if sources:
@@ -265,6 +278,8 @@ with right_col:
 
             with st.container(border=True):
                 st.markdown(f"**Câu hỏi:** {item.get('question', '')}")
+                if item.get("topic"):
+                    st.caption(f"Topic: {item['topic']}")
                 answer = str(item.get("answer", ""))
                 st.markdown(f"**Trả lời:** {answer[:700]}{'...' if len(answer) > 700 else ''}")
                 created_at = item.get("created_at")

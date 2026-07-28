@@ -26,10 +26,17 @@ def load_docx(file_path: str) -> list[PageText]:
     return [{"page": 1, "text": text}]
 
 
+TXT_ENCODINGS = ("utf-8-sig", "utf-8", "cp1258", "cp1252", "latin-1")
+
+
 def load_txt(file_path: str) -> list[PageText]:
-    with open(file_path, encoding="utf-8") as file:
-        text = file.read()
-    return [{"page": 1, "text": text}]
+    raw = Path(file_path).read_bytes()
+    for encoding in TXT_ENCODINGS:
+        try:
+            return [{"page": 1, "text": raw.decode(encoding)}]
+        except UnicodeDecodeError:
+            continue
+    return [{"page": 1, "text": raw.decode("utf-8", errors="replace")}]
 
 
 def load_document(file_path: str) -> list[PageText]:

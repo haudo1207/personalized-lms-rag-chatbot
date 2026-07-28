@@ -42,6 +42,21 @@ def add_chunks_to_vector_store(chunks: list[dict[str, object]]) -> int:
     return len(chunks)
 
 
+def _build_where(course_id: int, document_ids: list[int] | None) -> dict[str, object]:
+    course_filter = {"course_id": str(course_id)}
+    if not document_ids:
+        return course_filter
+    if len(document_ids) == 1:
+        doc_filter = {"document_id": str(document_ids[0])}
+    else:
+        doc_filter = {"document_id": {"$in": [str(d) for d in document_ids]}}
+    return {"$and": [course_filter, doc_filter]}
+
+
+def get_collection_count() -> int:
+    return collection.count()
+
+
 def search_chunks(
     question: str,
     course_id: int,
@@ -49,13 +64,8 @@ def search_chunks(
     document_ids: list[int] | None = None,
 ) -> list[dict[str, object]]:
     query_embedding = embed_text(question)
-    
-    where = {"course_id": str(course_id)}
-    if document_ids:
-        if len(document_ids) == 1:
-            where["document_id"] = str(document_ids[0])
-        else:
-            where["document_id"] = {"$in": [str(d) for d in document_ids]}
+
+    where = _build_where(course_id, document_ids)
 
     results = collection.query(
         query_embeddings=[query_embedding],
@@ -86,13 +96,8 @@ def get_all_chunks_for_course(
     course_id: int,
     document_ids: list[int] | None = None,
 ) -> list[dict[str, object]]:
-    where = {"course_id": str(course_id)}
-    if document_ids:
-        if len(document_ids) == 1:
-            where["document_id"] = str(document_ids[0])
-        else:
-            where["document_id"] = {"$in": [str(d) for d in document_ids]}
-            
+    where = _build_where(course_id, document_ids)
+
     res = collection.get(where=where, include=["documents", "metadatas"])
     
     output: list[dict[str, object]] = []

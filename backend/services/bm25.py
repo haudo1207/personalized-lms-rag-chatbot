@@ -31,17 +31,21 @@ class BM25:
         for term, freq in self.df.items():
             self.idf[term] = math.log((self.corpus_size - freq + 0.5) / (freq + 0.5) + 1.0)
 
-    def score(self, query: str) -> list[tuple[dict, float]]:
-        query_tokens = _normalize_and_tokenize(query)
-        scores = []
-        
-        for idx, doc in enumerate(self.corpus):
-            doc_len = self.doc_lens[idx]
-            tokens = self.doc_tokens[idx]
+        self.doc_tfs = []
+        for tokens in self.doc_tokens:
             tf = {}
             for token in tokens:
                 tf[token] = tf.get(token, 0) + 1
-                
+            self.doc_tfs.append(tf)
+
+    def score(self, query: str) -> list[tuple[dict, float]]:
+        query_tokens = _normalize_and_tokenize(query)
+        scores = []
+
+        for idx, doc in enumerate(self.corpus):
+            doc_len = self.doc_lens[idx]
+            tf = self.doc_tfs[idx]
+
             score = 0.0
             for term in query_tokens:
                 if term not in self.idf:

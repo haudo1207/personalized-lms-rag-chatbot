@@ -1,17 +1,17 @@
 import numpy as np
 from backend.services.embedding_service import embed_text
-from backend.services.vector_store import collection
+from backend.services import vector_store
 
 def rerank_chunks(question: str, chunks: list[dict], top_n: int = 3) -> list[dict]:
     if not chunks:
         return []
-        
+
     # Get the query embedding
     query_emb = np.array(embed_text(question))
-    
+
     # Retrieve pre-computed embeddings for the chunks from ChromaDB
     chunk_ids = [str(chunk["chunk_id"]) for chunk in chunks]
-    db_res = collection.get(ids=chunk_ids, include=["embeddings", "documents", "metadatas"])
+    db_res = vector_store.collection.get(ids=chunk_ids, include=["embeddings", "documents", "metadatas"])
     
     # Map from ID to embedding
     id_to_emb = {}

@@ -21,7 +21,8 @@ class ChatRequest(BaseModel):
     user_id: int
     course_id: int
     question: str
-    top_k: int = 5
+    top_k: int = 3
+    document_ids: list[int] | None = None
 
 
 class ChatHistoryRead(BaseModel):
@@ -59,12 +60,30 @@ def chat(request: ChatRequest, db: Session = Depends(get_db)) -> dict[str, objec
         course_id=request.course_id,
     )
 
+    # Retrieve chat history memory for query reformulation
+    db_history = (
+        db.query(ChatHistory)
+        .filter(
+            ChatHistory.user_id == request.user_id,
+            ChatHistory.course_id == request.course_id,
+        )
+        .order_by(ChatHistory.created_at.desc())
+        .limit(5)
+        .all()
+    )
+    chat_history = [
+        {"question": chat.question, "answer": chat.answer}
+        for chat in reversed(db_history)
+    ]
+
     try:
         result = ask_personalized_rag(
             question=request.question,
             course_id=request.course_id,
             user_profile=user_profile,
             top_k=request.top_k,
+            document_ids=request.document_ids,
+            chat_history=chat_history,
         )
     except RuntimeError as exc:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc

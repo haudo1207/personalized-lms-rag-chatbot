@@ -49,3 +49,20 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)) -> User:
 @router.get("/", response_model=list[UserRead])
 def get_users(db: Session = Depends(get_db)) -> list[User]:
     return db.query(User).order_by(User.id).all()
+
+
+@router.patch("/{user_id}/level", response_model=UserRead)
+def update_user_level(
+    user_id: int,
+    level: str,
+    db: Session = Depends(get_db),
+) -> User:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if level not in {"beginner", "intermediate", "advanced"}:
+        raise HTTPException(status_code=400, detail="Invalid level. Choose beginner, intermediate, or advanced.")
+    user.level = level
+    db.commit()
+    db.refresh(user)
+    return user

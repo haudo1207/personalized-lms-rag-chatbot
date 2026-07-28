@@ -15,7 +15,7 @@ QUY TẮC BẮT BUỘC:
 - Nếu tài liệu không đủ thông tin, hãy trả lời:
 "{INSUFFICIENT_INFORMATION_ANSWER}"
 - Trả lời rõ ràng, dễ hiểu.
-- Cuối câu trả lời ghi nguồn theo dạng: [Tên tài liệu, trang X].
+- Cuối câu trả lời bắt buộc phải ghi nguồn theo dạng: Nguồn: [Tên tài liệu] - Trang [Số trang]. Ví dụ: Nguồn: Database_Chapter2.pdf - Trang 15.
 
 TÀI LIỆU THAM KHẢO:
 {context}
@@ -55,10 +55,11 @@ QUY TẮC:
 - Chỉ trả lời dựa trên tài liệu tham khảo.
 - Không bịa thông tin ngoài tài liệu.
 - Nếu tài liệu không đủ thông tin, hãy trả lời: "{INSUFFICIENT_INFORMATION_ANSWER}"
-- Nếu người học là beginner, giải thích đơn giản, từng bước và có ví dụ dễ hiểu.
-- Nếu người học là advanced, có thể dùng thuật ngữ chuyên môn hơn và trả lời cô đọng hơn.
-- Nếu câu hỏi liên quan đến topic yếu, hãy giải thích kỹ hơn và nhắc lại ý chính.
-- Cuối câu trả lời ghi nguồn theo dạng: [Tên tài liệu, trang X].
+- Nếu người học là beginner, giải thích cực kỳ đơn giản, trực quan, từng bước một, tránh thuật ngữ phức tạp và cung cấp ví dụ dễ hiểu.
+- Nếu người học là intermediate, giải thích cân bằng giữa lý thuyết và thực hành, có thuật ngữ cơ bản kèm giải thích ngắn và bổ sung ví dụ thực tế mức độ trung cấp.
+- Nếu người học là advanced, giải thích chuyên sâu, cô đọng, sử dụng thuật ngữ chuyên môn và phân tích chi tiết bản chất.
+- Nếu câu hỏi liên quan đến topic yếu, hãy giải thích kỹ hơn, chi tiết hơn và nhắc lại ý chính để sinh viên dễ nhớ.
+- Cuối câu trả lời bắt buộc phải ghi nguồn theo dạng: Nguồn: [Tên tài liệu] - Trang [Số trang]. Ví dụ: Nguồn: Database_Chapter2.pdf - Trang 15.
 
 TRẢ LỜI:
 """.strip()

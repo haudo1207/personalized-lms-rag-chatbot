@@ -42,12 +42,25 @@ def add_chunks_to_vector_store(chunks: list[dict[str, object]]) -> int:
     return len(chunks)
 
 
-def search_chunks(question: str, course_id: int, top_k: int = 5) -> list[dict[str, object]]:
+def search_chunks(
+    question: str,
+    course_id: int,
+    top_k: int = 5,
+    document_ids: list[int] | None = None,
+) -> list[dict[str, object]]:
     query_embedding = embed_text(question)
+    
+    where = {"course_id": str(course_id)}
+    if document_ids:
+        if len(document_ids) == 1:
+            where["document_id"] = str(document_ids[0])
+        else:
+            where["document_id"] = {"$in": [str(d) for d in document_ids]}
+
     results = collection.query(
         query_embeddings=[query_embedding],
         n_results=top_k,
-        where={"course_id": str(course_id)},
+        where=where,
     )
 
     output: list[dict[str, object]] = []
@@ -66,6 +79,33 @@ def search_chunks(question: str, course_id: int, top_k: int = 5) -> list[dict[st
             }
         )
 
+    return output
+
+
+def get_all_chunks_for_course(
+    course_id: int,
+    document_ids: list[int] | None = None,
+) -> list[dict[str, object]]:
+    where = {"course_id": str(course_id)}
+    if document_ids:
+        if len(document_ids) == 1:
+            where["document_id"] = str(document_ids[0])
+        else:
+            where["document_id"] = {"$in": [str(d) for d in document_ids]}
+            
+    res = collection.get(where=where, include=["documents", "metadatas"])
+    
+    output: list[dict[str, object]] = []
+    if res and "ids" in res:
+        ids = res["ids"]
+        documents = res.get("documents", [])
+        metadatas = res.get("metadatas", [])
+        for idx, cid in enumerate(ids):
+            output.append({
+                "chunk_id": cid,
+                "text": documents[idx],
+                "metadata": metadatas[idx],
+            })
     return output
 
 

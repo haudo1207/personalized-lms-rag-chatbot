@@ -21,6 +21,19 @@ def get_student_dashboard(
         .count()
     )
 
+    # Calculate question counts grouped by topic
+    from sqlalchemy import func
+    topic_counts = (
+        db.query(ChatHistory.topic, func.count(ChatHistory.id))
+        .filter(
+            ChatHistory.user_id == user_id,
+            ChatHistory.course_id == course_id,
+        )
+        .group_by(ChatHistory.topic)
+        .all()
+    )
+    questions_by_topic = {topic or "Khác": count for topic, count in topic_counts}
+
     weak_topics = (
         db.query(WeakTopic)
         .filter(
@@ -51,14 +64,21 @@ def get_student_dashboard(
 
     return {
         "total_questions": total_questions,
-        "weak_topics": [item.topic for item in weak_topics],
+        "questions_by_topic": questions_by_topic,
+        "weak_topics": [
+            {
+                "topic": item.topic,
+                "reason": item.reason,
+            }
+            for item in weak_topics
+        ],
         "quiz_results": [
             {
                 "topic": item.topic,
                 "score": item.score,
                 "correct_answers": item.correct_answers,
                 "total_questions": item.total_questions,
-                "created_at": item.created_at,
+                "created_at": item.created_at.isoformat() if hasattr(item.created_at, "isoformat") else str(item.created_at),
             }
             for item in quiz_results
         ],

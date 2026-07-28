@@ -42,13 +42,39 @@ class QuizResultRead(BaseModel):
 
 
 @router.post("/generate")
-def generate(request: QuizGenerateRequest) -> dict[str, object]:
+def generate(
+    request: QuizGenerateRequest,
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    # 1. Determine adaptive difficulty based on past performance
+    latest_result = (
+        db.query(QuizResult)
+        .filter(
+            QuizResult.user_id == request.user_id,
+            QuizResult.course_id == request.course_id,
+            QuizResult.topic == request.topic,
+        )
+        .order_by(QuizResult.created_at.desc())
+        .first()
+    )
+
+    difficulty = request.difficulty
+    if latest_result:
+        if latest_result.score >= 80.0:
+            difficulty = "hard"
+        elif latest_result.score < 50.0:
+            difficulty = "easy"
+        else:
+            difficulty = "medium"
+    else:
+        difficulty = "easy"
+
     try:
         quiz = generate_quiz(
             course_id=request.course_id,
             topic=request.topic,
             num_questions=request.num_questions,
-            difficulty=request.difficulty,
+            difficulty=difficulty,
         )
     except RuntimeError as exc:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
@@ -58,7 +84,7 @@ def generate(request: QuizGenerateRequest) -> dict[str, object]:
             detail=f"Quiz generation failed: {exc}",
         ) from exc
 
-    return {"quiz": quiz}
+    return {"quiz": quiz, "adaptive_difficulty": difficulty}
 
 
 @router.post("/submit")

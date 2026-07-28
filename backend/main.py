@@ -7,6 +7,8 @@ from backend.models.document import Document
 from backend.models.quiz_result import QuizResult
 from backend.models.user import User
 from backend.models.weak_topic import WeakTopic
+from backend.models.user_profile import UserProfile
+from backend.models.recommendation_history import RecommendationHistory
 from backend.routers import chat, courses, dashboard, documents, quiz, retrieval, users
 
 

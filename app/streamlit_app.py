@@ -331,11 +331,11 @@ with tab_chat:
                     type=["pdf", "docx", "txt"],
                     key="quick_chat_upload"
                 )
-                if st.button("📤 Tải lên & Tự động Index", type="primary", use_container_width=True):
+                if st.button("📤 Tải lên", type="primary", use_container_width=True):
                     if chat_upload_file is None:
                         st.warning("Vui lòng chọn file trước khi bấm Tải lên.")
                     else:
-                        with st.spinner("1/2 Đang upload file..."):
+                        with st.spinner("Đang xử lý tài liệu (upload, chia chunk, tạo embedding)..."):
                             up_ok, up_payload, up_code = request_json(
                                 "POST",
                                 "/documents/upload",
@@ -344,14 +344,12 @@ with tab_chat:
                             )
                         if up_ok and isinstance(up_payload, dict):
                             doc_id = int(up_payload.get("document_id", 1))
-                            st.info(f"Đã upload xong. Đang khởi tạo Vector Index cho File #{doc_id}...")
-                            with st.spinner("2/2 Đang tạo Chunk Embedding & lưu vào ChromaDB..."):
-                                idx_ok, idx_payload, idx_code = request_json("POST", f"/documents/{doc_id}/index")
-                            if idx_ok:
-                                st.success(f"✅ Hoàn tất! Tài liệu '{chat_upload_file.name}' đã được Index vào cơ sở dữ liệu thành công!")
-                                st.session_state.last_document_id = doc_id
-                            else:
-                                show_api_error("Index Vector", idx_payload, idx_code)
+                            chunk_count = up_payload.get("chunks", "?")
+                            st.success(
+                                f"✅ Tài liệu '{chat_upload_file.name}' đã sẵn sàng để Chatbot trả lời "
+                                f"({chunk_count} đoạn văn bản đã được đánh chỉ mục)."
+                            )
+                            st.session_state.last_document_id = doc_id
                         else:
                             show_api_error("Upload tài liệu", up_payload, up_code)
 
@@ -394,17 +392,20 @@ with tab_chat:
             st.caption(f"Đã lưu **{len(course_documents)}** file trong môn học này:")
             for doc in course_documents:
                 status = str(doc.get("status", "uploaded")).lower()
-                status_icon = "🟢 Indexed" if status == "indexed" else "🟡 Chưa Index"
+                status_icon = "🟢 Sẵn sàng" if status == "indexed" else "🔴 Lỗi xử lý"
                 with st.container(border=True):
                     st.markdown(f"📄 **{doc.get('file_name', 'Unnamed')}**")
                     st.caption(f"ID: #{doc.get('id')} | {status_icon}")
                     if status != "indexed":
-                        if st.button(f"⚡ Index ngay #{doc.get('id')}", key=f"btn_idx_{doc.get('id')}", use_container_width=True):
-                            with st.spinner("Đang Indexing..."):
-                                idx_ok, _, _ = request_json("POST", f"/documents/{doc.get('id')}/index")
+                        st.caption("Tài liệu này chưa xử lý được (có thể là file ảnh/scan không có chữ).")
+                        if st.button(f"🔁 Thử lại #{doc.get('id')}", key=f"btn_idx_{doc.get('id')}", use_container_width=True):
+                            with st.spinner("Đang thử lại..."):
+                                idx_ok, idx_payload, idx_code = request_json("POST", f"/documents/{doc.get('id')}/index")
                                 if idx_ok:
-                                    st.success("Đã Index xong!")
+                                    st.success("Đã xử lý xong!")
                                     st.rerun()
+                                else:
+                                    show_api_error("Thử lại", idx_payload, idx_code)
         else:
             st.info("Chưa có tài liệu nào được upload cho môn học này.")
 
@@ -436,10 +437,10 @@ with tab_chat:
 # TAB 2: DANH SÁCH TÀI LIỆU (DOCUMENT MANAGER)
 # -----------------------------------------------------------------------------
 with tab_docs:
-    st.subheader("📚 Danh sách Chi tiết Tài liệu & Quản lý Index")
+    st.subheader("📚 Danh sách Chi tiết Tài liệu")
     documents = load_documents()
     course_documents = [doc for doc in documents if int(doc.get("course_id", 0)) == course_id]
-    
+
     if course_documents:
         for doc in course_documents:
             with st.container(border=True):
@@ -447,17 +448,20 @@ with tab_docs:
                 with c_d1:
                     st.markdown(f"📄 **{doc.get('file_name', 'Unnamed')}** (ID: `{doc.get('id')}`)")
                 with c_d2:
-                    st.caption(f"Trạng thái: **{doc.get('status', 'uploaded')}**")
-                    st.caption(f"Ngày tạo: {str(doc.get('created_at', ''))[:10]}")
+                    status = str(doc.get("status", "uploaded")).lower()
+                    status_label = "🟢 Sẵn sàng" if status == "indexed" else "🔴 Lỗi xử lý"
+                    st.caption(f"Trạng thái: **{status_label}**")
+                    st.caption(f"Ngày tạo: {str(doc.get('uploaded_at', ''))[:10]}")
                 with c_d3:
-                    if st.button("⚡ Index file này", key=f"tab2_idx_{doc.get('id')}", use_container_width=True):
-                        with st.spinner("Đang Indexing..."):
-                            idx_ok, payload, code = request_json("POST", f"/documents/{doc.get('id')}/index")
-                            if idx_ok:
-                                st.success("Hoàn tất Index!")
-                                st.rerun()
-                            else:
-                                show_api_error("Index", payload, code)
+                    if status != "indexed":
+                        if st.button("🔁 Thử lại", key=f"tab2_idx_{doc.get('id')}", use_container_width=True):
+                            with st.spinner("Đang thử lại..."):
+                                idx_ok, payload, code = request_json("POST", f"/documents/{doc.get('id')}/index")
+                                if idx_ok:
+                                    st.success("Đã xử lý xong!")
+                                    st.rerun()
+                                else:
+                                    show_api_error("Thử lại", payload, code)
     else:
         st.info("Chưa có tài liệu nào được tải lên cho môn học này.")
 

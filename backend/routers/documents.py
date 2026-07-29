@@ -49,6 +49,12 @@ async def upload_document(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
+    """Upload, chunk, embed and index a document in one call.
+
+    There is no separate manual "index" step in the primary flow: a student talking to the
+    chatbot has no reason to know or care that indexing is a distinct stage. `/index` still
+    exists below purely as a retry path for a document whose status isn't "indexed".
+    """
     original_name = Path(file.filename or "").name
     if not original_name:
         raise HTTPException(status_code=400, detail="Missing uploaded filename.")
@@ -83,21 +89,34 @@ async def upload_document(
         cleaned_pages = clean_pages(pages)
         processed_path = PROCESSED_DIR / f"{document.id}_{Path(original_name).stem}.txt"
         _write_processed_text(processed_path, cleaned_pages)
+
+        chunks = create_chunks(
+            document_id=document.id,
+            course_id=course_id,
+            document_name=original_name,
+            pages=cleaned_pages,
+        )
+        if not chunks:
+            raise ValueError(
+                "No extractable text found (the file may be a scanned/image-only document)."
+            )
+        chunk_count = add_chunks_to_vector_store(chunks)
     except Exception as exc:
         document.status = "failed"
         db.commit()
-        raise HTTPException(status_code=422, detail=f"Could not process document: {exc}") from exc
+        raise HTTPException(status_code=422, detail=f"Could not index document: {exc}") from exc
 
-    document.status = "processed"
+    document.status = "indexed"
     db.commit()
     db.refresh(document)
 
     return {
-        "message": "Document uploaded and processed",
+        "message": "Document uploaded and indexed",
         "document_id": document.id,
         "file_name": document.file_name,
         "status": document.status,
         "pages": len(cleaned_pages),
+        "chunks": chunk_count,
         "processed_path": str(processed_path),
     }
 
@@ -114,6 +133,10 @@ def _write_processed_text(
 
 @router.post("/{document_id}/index")
 def index_document(document_id: int, db: Session = Depends(get_db)) -> dict[str, object]:
+    """Retry indexing for a document that failed during upload. Not part of the primary flow --
+    `/upload` already indexes in one shot -- this exists only so a failed document can be
+    retried without re-uploading the file.
+    """
     document = db.query(Document).filter(Document.id == document_id).first()
     if not document:
         raise HTTPException(status_code=404, detail="Document not found.")
@@ -127,9 +150,13 @@ def index_document(document_id: int, db: Session = Depends(get_db)) -> dict[str,
             document_name=document.file_name,
             pages=cleaned_pages,
         )
+        if not chunks:
+            raise ValueError(
+                "No extractable text found (the file may be a scanned/image-only document)."
+            )
         count = add_chunks_to_vector_store(chunks)
     except Exception as exc:
-        document.status = "index_failed"
+        document.status = "failed"
         db.commit()
         raise HTTPException(status_code=422, detail=f"Could not index document: {exc}") from exc
 

@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 
 from backend.database import get_db
 from backend.models.chat_history import ChatHistory
+from backend.models.user import User
 from backend.models.weak_topic import WeakTopic
+from backend.security_deps import get_current_user, require_self_or_admin, verify_course_access
 from backend.services.personalization import build_user_profile
 from backend.services.rag_pipeline import ask_personalized_rag
 from backend.services.topic_classifier import classify_topic
@@ -52,7 +54,14 @@ class WeakTopicRead(BaseModel):
 
 
 @router.post("/")
-def chat(request: ChatRequest, db: Session = Depends(get_db)) -> dict[str, object]:
+def chat(
+    request: ChatRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict[str, object]:
+    require_self_or_admin(request.user_id, current_user)
+    verify_course_access(request.course_id, current_user, db)
+
     topic = classify_topic(request.question)
     user_profile = build_user_profile(
         db=db,
@@ -124,7 +133,12 @@ def chat(request: ChatRequest, db: Session = Depends(get_db)) -> dict[str, objec
 
 
 @router.get("/history/{user_id}", response_model=list[ChatHistoryRead])
-def get_history(user_id: int, db: Session = Depends(get_db)) -> list[ChatHistory]:
+def get_history(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[ChatHistory]:
+    require_self_or_admin(user_id, current_user)
     return (
         db.query(ChatHistory)
         .filter(ChatHistory.user_id == user_id)
@@ -134,7 +148,14 @@ def get_history(user_id: int, db: Session = Depends(get_db)) -> list[ChatHistory
 
 
 @router.get("/profile/{user_id}/{course_id}")
-def get_profile(user_id: int, course_id: int, db: Session = Depends(get_db)) -> dict[str, object]:
+def get_profile(
+    user_id: int,
+    course_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict[str, object]:
+    require_self_or_admin(user_id, current_user)
+    verify_course_access(course_id, current_user, db)
     return build_user_profile(db=db, user_id=user_id, course_id=course_id)
 
 
@@ -143,7 +164,10 @@ def list_weak_topics(
     user_id: int,
     course_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> list[WeakTopic]:
+    require_self_or_admin(user_id, current_user)
+    verify_course_access(course_id, current_user, db)
     return (
         db.query(WeakTopic)
         .filter(

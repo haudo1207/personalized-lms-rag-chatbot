@@ -9,6 +9,9 @@ from sqlalchemy.orm import Session
 from backend.config import get_settings
 from backend.database import get_db
 from backend.models.document import Document
+from backend.models.user import User
+from backend.models.user_course import UserCourse
+from backend.security_deps import get_current_user, require_self_or_admin, verify_course_access
 from backend.services.chunking import create_chunks
 from backend.services.document_loader import load_document
 from backend.services.text_cleaner import clean_pages
@@ -39,8 +42,25 @@ class DocumentRead(BaseModel):
 
 
 @router.get("/", response_model=list[DocumentRead])
-def list_documents(db: Session = Depends(get_db)) -> list[Document]:
-    return db.query(Document).order_by(Document.id).all()
+def list_documents(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[Document]:
+    if current_user.role == "admin":
+        return db.query(Document).order_by(Document.id).all()
+
+    enrolled_ids = [
+        row.course_id
+        for row in db.query(UserCourse).filter(UserCourse.user_id == current_user.id).all()
+    ]
+    if not enrolled_ids:
+        return []
+    return (
+        db.query(Document)
+        .filter(Document.course_id.in_(enrolled_ids))
+        .order_by(Document.id)
+        .all()
+    )
 
 
 @router.post("/upload", status_code=status.HTTP_201_CREATED)
@@ -49,6 +69,7 @@ async def upload_document(
     user_id: int = Form(...),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> dict[str, object]:
     """Upload, chunk, embed and index a document in one call.
 
@@ -56,6 +77,9 @@ async def upload_document(
     chatbot has no reason to know or care that indexing is a distinct stage. `/index` still
     exists below purely as a retry path for a document whose status isn't "indexed".
     """
+    require_self_or_admin(user_id, current_user)
+    verify_course_access(course_id, current_user, db)
+
     original_name = Path(file.filename or "").name
     if not original_name:
         raise HTTPException(status_code=400, detail="Missing uploaded filename.")
@@ -133,7 +157,11 @@ def _write_processed_text(
 
 
 @router.post("/{document_id}/index")
-def index_document(document_id: int, db: Session = Depends(get_db)) -> dict[str, object]:
+def index_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict[str, object]:
     """Retry indexing for a document that failed during upload. Not part of the primary flow --
     `/upload` already indexes in one shot -- this exists only so a failed document can be
     retried without re-uploading the file.
@@ -141,6 +169,7 @@ def index_document(document_id: int, db: Session = Depends(get_db)) -> dict[str,
     document = db.query(Document).filter(Document.id == document_id).first()
     if not document:
         raise HTTPException(status_code=404, detail="Document not found.")
+    verify_course_access(document.course_id, current_user, db)
 
     try:
         pages = load_document(document.file_path)

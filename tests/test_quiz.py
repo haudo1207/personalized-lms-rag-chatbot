@@ -17,7 +17,9 @@ FAKE_QUIZ_JSON = json.dumps(
 )
 
 
-def test_generate_quiz_returns_questions(client, new_user, new_course, uploaded_document, monkeypatch):
+def test_generate_quiz_returns_questions(
+    client, new_user, new_course, uploaded_document, user_headers, monkeypatch
+):
     monkeypatch.setattr("backend.services.quiz_generator.generate_answer", lambda prompt: FAKE_QUIZ_JSON)
 
     resp = client.post(
@@ -29,6 +31,7 @@ def test_generate_quiz_returns_questions(client, new_user, new_course, uploaded_
             "num_questions": 1,
             "difficulty": "easy",
         },
+        headers=user_headers,
     )
     assert resp.status_code == 200, resp.text
     body = resp.json()
@@ -37,42 +40,65 @@ def test_generate_quiz_returns_questions(client, new_user, new_course, uploaded_
     assert body["quiz"][0]["correct_answer"] == "A"
 
 
-def test_generate_quiz_without_matching_documents_reports_no_context(client, new_user, new_course):
+def test_generate_quiz_without_matching_documents_reports_no_context(
+    client, new_user, enrolled_course, user_headers
+):
     resp = client.post(
         "/quiz/generate",
         json={
             "user_id": new_user["id"],
-            "course_id": new_course["id"],
+            "course_id": enrolled_course["id"],
             "topic": "Chu de khong ton tai",
             "num_questions": 3,
             "difficulty": "easy",
         },
+        headers=user_headers,
     )
     assert resp.status_code == 200
     assert resp.json()["quiz"]["error"] == "No relevant context found"
 
 
-def test_submit_quiz_and_read_results(client, new_user, new_course):
+def test_submit_quiz_and_read_results(client, new_user, enrolled_course, user_headers):
     resp = client.post(
         "/quiz/submit",
         json={
             "user_id": new_user["id"],
-            "course_id": new_course["id"],
+            "course_id": enrolled_course["id"],
             "topic": "Khoa chinh",
             "total_questions": 5,
             "correct_answers": 4,
         },
+        headers=user_headers,
     )
     assert resp.status_code == 200
     body = resp.json()
     assert body["score"] == 80.0
 
-    results = client.get(f"/quiz/results/{new_user['id']}", params={"course_id": new_course["id"]})
+    results = client.get(
+        f"/quiz/results/{new_user['id']}",
+        params={"course_id": enrolled_course["id"]},
+        headers=user_headers,
+    )
     assert results.status_code == 200
     assert any(r["topic"] == "Khoa chinh" for r in results.json())
 
 
-def test_submit_quiz_rejects_correct_greater_than_total(client, new_user, new_course):
+def test_submit_quiz_rejects_correct_greater_than_total(client, new_user, enrolled_course, user_headers):
+    resp = client.post(
+        "/quiz/submit",
+        json={
+            "user_id": new_user["id"],
+            "course_id": enrolled_course["id"],
+            "topic": "Khoa chinh",
+            "total_questions": 3,
+            "correct_answers": 5,
+        },
+        headers=user_headers,
+    )
+    assert resp.status_code == 400
+
+
+def test_submit_quiz_forbidden_without_enrollment(client, new_user, new_course, user_headers):
     resp = client.post(
         "/quiz/submit",
         json={
@@ -80,7 +106,8 @@ def test_submit_quiz_rejects_correct_greater_than_total(client, new_user, new_co
             "course_id": new_course["id"],
             "topic": "Khoa chinh",
             "total_questions": 3,
-            "correct_answers": 5,
+            "correct_answers": 2,
         },
+        headers=user_headers,
     )
-    assert resp.status_code == 400
+    assert resp.status_code == 403

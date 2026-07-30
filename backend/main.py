@@ -6,10 +6,11 @@ from backend.models.course import Course
 from backend.models.document import Document
 from backend.models.quiz_result import QuizResult
 from backend.models.user import User
+from backend.models.user_course import UserCourse
 from backend.models.weak_topic import WeakTopic
 from backend.models.user_profile import UserProfile
 from backend.models.recommendation_history import RecommendationHistory
-from backend.routers import chat, courses, dashboard, documents, quiz, retrieval, users
+from backend.routers import auth, chat, courses, dashboard, documents, quiz, retrieval, users
 
 
 Base.metadata.create_all(bind=engine)
@@ -20,6 +21,7 @@ app = FastAPI(
     version="0.1.0",
 )
 
+app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(courses.router)
 app.include_router(documents.router)

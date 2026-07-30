@@ -1,4 +1,6 @@
-def test_dashboard_aggregates_chat_and_quiz_activity(client, new_user, new_course, uploaded_document, monkeypatch):
+def test_dashboard_aggregates_chat_and_quiz_activity(
+    client, new_user, new_course, uploaded_document, user_headers, monkeypatch
+):
     monkeypatch.setattr(
         "backend.services.rag_pipeline.generate_answer",
         lambda prompt: "Khoa chinh dung de xac dinh duy nhat moi ban ghi.",
@@ -11,6 +13,7 @@ def test_dashboard_aggregates_chat_and_quiz_activity(client, new_user, new_cours
             "question": "Khoa chinh la gi?",
             "top_k": 3,
         },
+        headers=user_headers,
     )
     assert chat_resp.status_code == 200
 
@@ -23,10 +26,15 @@ def test_dashboard_aggregates_chat_and_quiz_activity(client, new_user, new_cours
             "total_questions": 4,
             "correct_answers": 3,
         },
+        headers=user_headers,
     )
     assert submit_resp.status_code == 200
 
-    dash_resp = client.get(f"/dashboard/student/{new_user['id']}", params={"course_id": new_course["id"]})
+    dash_resp = client.get(
+        f"/dashboard/student/{new_user['id']}",
+        params={"course_id": new_course["id"]},
+        headers=user_headers,
+    )
     assert dash_resp.status_code == 200
     dashboard = dash_resp.json()
     assert dashboard["total_questions"] == 1
@@ -35,11 +43,20 @@ def test_dashboard_aggregates_chat_and_quiz_activity(client, new_user, new_cours
     assert "recommendations" in dashboard
 
 
-def test_profile_endpoint_reflects_user_and_history(client, new_user, new_course):
-    resp = client.get(f"/chat/profile/{new_user['id']}/{new_course['id']}")
+def test_profile_endpoint_reflects_user_and_history(client, new_user, enrolled_course, user_headers):
+    resp = client.get(f"/chat/profile/{new_user['id']}/{enrolled_course['id']}", headers=user_headers)
     assert resp.status_code == 200
     body = resp.json()
     assert body["full_name"] == new_user["full_name"]
     assert body["level"] == new_user["level"]
     assert body["recent_questions"] == []
     assert body["weak_topics"] == []
+
+
+def test_dashboard_forbidden_without_enrollment(client, new_user, new_course, user_headers):
+    resp = client.get(
+        f"/dashboard/student/{new_user['id']}",
+        params={"course_id": new_course["id"]},
+        headers=user_headers,
+    )
+    assert resp.status_code == 403

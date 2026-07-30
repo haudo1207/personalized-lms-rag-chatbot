@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 
 from backend.database import get_db
 from backend.models.quiz_result import QuizResult
+from backend.models.user import User
+from backend.security_deps import get_current_user, require_self_or_admin, verify_course_access
 from backend.services.quiz_generator import generate_quiz
 
 
@@ -45,7 +47,11 @@ class QuizResultRead(BaseModel):
 def generate(
     request: QuizGenerateRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> dict[str, object]:
+    require_self_or_admin(request.user_id, current_user)
+    verify_course_access(request.course_id, current_user, db)
+
     # 1. Determine adaptive difficulty based on past performance
     latest_result = (
         db.query(QuizResult)
@@ -91,7 +97,11 @@ def generate(
 def submit_quiz(
     request: QuizSubmitRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> dict[str, object]:
+    require_self_or_admin(request.user_id, current_user)
+    verify_course_access(request.course_id, current_user, db)
+
     if request.correct_answers > request.total_questions:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -126,7 +136,11 @@ def get_quiz_results(
     user_id: int,
     course_id: int | None = None,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> list[QuizResult]:
+    require_self_or_admin(user_id, current_user)
+    if course_id is not None:
+        verify_course_access(course_id, current_user, db)
     query = db.query(QuizResult).filter(QuizResult.user_id == user_id)
     if course_id is not None:
         query = query.filter(QuizResult.course_id == course_id)

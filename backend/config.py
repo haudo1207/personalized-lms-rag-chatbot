@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     vector_db_path: str = "./vector_store"
     raw_dir: str = "data/raw"
     processed_dir: str = "data/processed"
+    jwt_secret: str = "dev-insecure-secret-change-me"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 12 * 60
 
 
 @lru_cache

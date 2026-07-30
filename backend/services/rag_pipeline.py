@@ -9,10 +9,28 @@ from backend.services.prompt_template import (
 from backend.services.retriever import retrieve_relevant_chunks
 
 
+def reorder_for_lost_in_middle(chunks: list[dict[str, object]]) -> list[dict[str, object]]:
+    """Move the most relevant chunks to both ends of the list, least relevant to
+    the middle. LLMs attend best to the start and end of a long prompt and tend
+    to under-use the middle ("Lost in the Middle") -- ranked chunks are zig-zagged
+    outward from rank 1 so the top results sit at the two ends instead of being
+    front-loaded in descending-rank order."""
+    reordered: list[dict[str, object] | None] = [None] * len(chunks)
+    left, right = 0, len(chunks) - 1
+    for i, chunk in enumerate(chunks):
+        if i % 2 == 0:
+            reordered[left] = chunk
+            left += 1
+        else:
+            reordered[right] = chunk
+            right -= 1
+    return [c for c in reordered if c is not None]
+
+
 def format_context(chunks: list[dict[str, object]]) -> str:
     context_parts: list[str] = []
 
-    for chunk in chunks:
+    for chunk in reorder_for_lost_in_middle(chunks):
         metadata = chunk["metadata"]
         source = f"[{metadata['document_name']}, trang {metadata['page']}]"
         context_parts.append(f"{source}\n{chunk['text']}")
@@ -76,6 +94,7 @@ def ask_rag(
         course_id=course_id,
         top_k=top_k,
         document_ids=document_ids,
+        use_multi_query=False,
     )
     sources = _build_sources(chunks)
 
@@ -119,6 +138,7 @@ def ask_personalized_rag(
         course_id=course_id,
         top_k=top_k,
         document_ids=document_ids,
+        use_multi_query=False,
     )
     sources = _build_sources(chunks)
 

@@ -1,0 +1,58 @@
+question_id,question,topic,answer,n_claims,n_claims_supported,faithfulness,answer_relevancy
+1,Khóa chính là gì?,Khóa chính,"Khóa chính là một khóa dự tuyển mà các giá trị của chúng được dùng để xác định các bộ trong quan hệ. Theo quy ước, các thuộc tính tạo nên khóa chính của một lược đồ quan hệ sẽ được gạch dưới.
+
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 56.",2,2,1.0,0.44816788161335186
+2,Khóa ngoại dùng để làm gì?,Khóa ngoại,"Khóa ngoài dùng để biểu thị một liên kết đệ quy và biểu diễn các ràng buộc tham chiếu. Để làm điều đó, ta vẽ một cạnh có hướng từ mỗi khóa ngoài đến quan hệ mà nó tham chiếu đến.
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 61.",3,3,1.0,0.5659706037222537
+3,INNER JOIN khác LEFT JOIN như thế nào?,SQL JOIN,"Tài liệu tham khảo mô tả phép nối ngoài trái (left outer join) là một trong ba loại phép nối ngoài. Các phép toán nối ngoài được sử dụng khi người dùng muốn giữ các bộ trong quan hệ R hoặc S hoặc trong cả hai quan hệ trong kết quả của phép nối, ngay cả khi chúng không có các bộ liên kết trong quan hệ kia.
+
+Ngược lại, tài liệu cũng đề cập đến ""Các phép toán nối mô tả ở trên liên kết các bộ thoả mãn điều kiện nối"". Điều này ngụ ý rằng các phép toán nối này chỉ giữ lại những bộ dữ liệu khi có sự khớp nối thỏa mãn điều kiện từ cả hai phía của quan hệ. Các bộ không thỏa mãn điều kiện nối hoặc không có bộ liên kết ở phía còn lại sẽ không được giữ lại trong kết quả.
+
+Do đó, sự khác biệt chính là:
+*   **LEFT JOIN (nối ngoài trái)**: Giữ lại tất cả các bộ từ quan hệ bên trái (hoặc R) trong kết quả, ngay cả khi không có bộ nào khớp từ quan hệ bên phải (hoặc S).
+*   **Phép nối chỉ liên kết các bộ thỏa mãn điều kiện** (được mô tả trong tài liệu, tương ứng với INNER JOIN): Chỉ giữ lại các bộ từ cả hai quan hệ khi chúng thỏa mãn điều kiện nối, tức là có sự khớp nối ở cả hai phía.
+
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 77.",7,6,0.8571428571428571,0.5596969577021257
+4,Chuẩn hóa cơ sở dữ liệu là gì?,Chuẩn hóa cơ sở dữ liệu,"Chuẩn hóa cơ sở dữ liệu là một quá trình trong thiết kế cơ sở dữ liệu, sử dụng một cơ cấu hình thức để phân tích các lược đồ quan hệ dựa trên các khóa của nó và các phụ thuộc hàm giữa các thuộc tính của nó. Nó bao gồm một loạt các kiểm tra dạng chuẩn có thể thực hiện trên các lược đồ quan hệ riêng rẽ sao cho cơ sở dữ liệu quan hệ có thể được chuẩn hóa đến một mức cần thiết. Quá trình này thường áp dụng một thuật toán chuẩn hóa sau khi người thiết kế chỉ ra các phụ thuộc, để tổng hợp các lược đồ quan hệ sao cho mỗi lược đồ quan hệ riêng rẽ ở dạng chuẩn 3NF, BCNF hoặc ở dạng chuẩn cao hơn.
+
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 102, giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 108.",8,8,1.0,0.8786010555814654
+5,1NF yêu cầu điều gì?,Chuẩn hóa cơ sở dữ liệu,"1NF (dạng chuẩn 1) yêu cầu không cho phép quan hệ có các thuộc tính đa trị hoặc có các nhóm thuộc tính lặp (quan hệ trong quan hệ). Nó chỉ cho phép các giá trị của các thuộc tính là nguyên tử (trị đơn lấy từ miền giá trị của thuộc tính đó).
+
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 103.",2,2,1.0,0.6697048993409586
+6,2NF khắc phục vấn đề gì?,Chuẩn hóa cơ sở dữ liệu,Tài liệu hiện tại không cung cấp đủ thông tin để trả lời câu hỏi này.,0,0,,
+7,3NF giúp giảm loại phụ thuộc nào?,Chuẩn hóa cơ sở dữ liệu,"Dạng chuẩn 3 (3NF) giúp loại bỏ các phụ thuộc bộ phận và phụ thuộc bắc cầu.
+
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 106, giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 109.",1,1,1.0,0.6434013602746855
+8,ERD dùng để làm gì?,ERD,"Mô hình thực thể - liên kết (gọi tắt là mô hình ER) là một mô hình dữ liệu mức quan niệm phổ biến, tập trung vào các cấu trúc dữ liệu và các ràng buộc. Mô hình này thường được sử dụng để thiết kế các ứng dụng cơ sở dữ liệu và nhiều công cụ thiết kế cơ sở dữ liệu sử dụng các khái niệm của nó.
+
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 25.",5,5,1.0,0.5700773892746028
+9,Thực thể trong ERD là gì?,ERD,"Đối tượng được trình bày trong mô hình ER (mô hình thực thể liên kết) là thực thể.
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 27.",1,1,1.0,0.5955677466789302
+10,Mối quan hệ một-nhiều trong ERD nghĩa là gì?,ERD,Tài liệu hiện tại không cung cấp đủ thông tin để trả lời câu hỏi này.,0,0,,
+11,Vì sao cần khóa chính trong bảng?,Khóa chính,"Cần khóa chính trong bảng vì giá trị của khóa chính được sử dụng để xác định các bộ giá trị riêng biệt trong một quan hệ. Khóa chính phải luôn luôn có giá trị xác định, nghĩa là không được phép có giá trị null. Nếu có giá trị null cho khóa chính, chúng ta sẽ không thể xác định và phân biệt được một số bộ giá trị.
+
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 60.",3,3,1.0,0.5508919415924269
+12,Khóa chính có được để trống không?,Khóa chính,"Khóa chính không được phép có giá trị null, mà phải luôn luôn có giá trị xác định. Điều này là do giá trị của khóa chính được sử dụng để xác định các bộ giá trị riêng biệt trong một quan hệ, và việc có giá trị null cho khóa chính sẽ khiến không thể xác định được một số bộ giá trị, dẫn đến không thể phân biệt chúng.
+
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 60.",5,5,1.0,0.47894423816467596
+13,Khóa ngoại có thể trùng giá trị không?,Khóa ngoại,Tài liệu hiện tại không cung cấp đủ thông tin để trả lời câu hỏi này.,0,0,,
+14,LEFT JOIN trả về dữ liệu gì khi bảng phải không khớp?,SQL JOIN,"Phép nối ngoài trái giữ lại mọi bộ trong quan hệ bên trái trong phép nối. Nếu không có bộ liên kết nào được tìm thấy trong quan hệ bên phải, thì các thuộc tính của quan hệ bên phải trong kết quả phép nối sẽ được “làm đầy” bằng các giá trị null.
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 78.",2,2,1.0,0.4742030953802377
+15,RIGHT JOIN khác LEFT JOIN ở điểm nào?,SQL JOIN,Tài liệu hiện tại không cung cấp đủ thông tin để trả lời câu hỏi này.,0,0,,
+16,FULL OUTER JOIN dùng khi nào?,SQL JOIN,"FULL OUTER JOIN (nối ngoài đầy đủ) được sử dụng khi chúng ta muốn giữ các bộ trong quan hệ R hoặc S hoặc trong cả hai quan hệ trong kết quả của phép nối, dù chúng có những bộ liên kết trong quan hệ kia hay không.
+
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 77.",1,1,1.0,0.5245796919730078
+17,Dư thừa dữ liệu gây vấn đề gì?,Chuẩn hóa cơ sở dữ liệu,"Dư thừa dữ liệu (dư thừa thông tin) gây ra các vấn đề sau:
+*   Gây lãng phí không gian nhớ/không gian lưu trữ, vì cùng một thông tin được lưu trữ nhiều lần.
+*   Dẫn đến một vấn đề nghiêm trọng là sự dị thường cập nhật.
+*   Dị thường cập nhật bao gồm Dị thường Chèn, Dị thường Xoá, và Dị thường Sửa đổi.
+*   Những dị thường cập nhật này sẽ đưa vào cơ sở dữ liệu những thông tin “lạ” và làm cho cơ sở dữ liệu mất tính đúng đắn.
+
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 13, 89, 90.",4,4,1.0,0.6578171046498485
+18,Phụ thuộc hàm là gì?,Chuẩn hóa cơ sở dữ liệu,"Phụ thuộc hàm là một tính chất ngữ nghĩa của các thuộc tính. Khi ngữ nghĩa của hai tập thuộc tính trong R chỉ ra rằng có thể có một phụ thuộc hàm, chúng ta sẽ đặc tả phụ thuộc hàm như một ràng buộc.
+
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 93.",2,2,1.0,0.8038792543701533
+19,Ràng buộc toàn vẹn tham chiếu liên quan đến gì?,Khóa ngoại,"Ràng buộc toàn vẹn tham chiếu được chỉ ra giữa hai quan hệ để duy trì sự tương ứng giữa các bộ của hai quan hệ. Một cách không hình thức, ràng buộc này phát biểu rằng một bộ giá trị trong một quan hệ có liên kết đến một quan hệ khác phải liên kết đến một bộ giá trị tồn tại trong quan hệ đó. Các ràng buộc toàn vẹn tham chiếu thường nảy sinh từ các mối liên kết giữa các thực thể được biểu diễn bằng các lược đồ quan hệ.
+
+Nguồn: giao-trinh-co-so-du-lieu-ma-so-2cd3-tu-co-ban-den-ung-dung.pdf - Trang 60, 61.",3,3,1.0,0.6110250629473085
+20,Khi nào nên dùng INNER JOIN?,SQL JOIN,"Tài liệu hiện tại không cung cấp đủ thông tin để trả lời câu hỏi này. Tài liệu có đề cập đến các phép toán nối ngoài (left outer join, right outer join, full outer join) và mô tả rằng ""Các phép toán nối mô tả ở trên liên kết các bộ thoả mãn điều kiện nối"", nhưng không nêu rõ khi nào nên dùng INNER JOIN một cách cụ thể.",4,4,1.0,0.6428093744663939

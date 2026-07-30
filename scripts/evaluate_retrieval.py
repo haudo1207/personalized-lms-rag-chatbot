@@ -45,9 +45,10 @@ GOLD_CSV = EVAL_DIR / "gold_chunks.csv"
 OUT_DIR = Path("reports/eval")
 
 CONFIGS = {
-    "A": {"label": "Dense (vector only)", "use_bm25": False, "use_reranker": False},
-    "B": {"label": "Hybrid (vector + BM25 + RRF)", "use_bm25": True, "use_reranker": False},
-    "C": {"label": "Hybrid + Reranker", "use_bm25": True, "use_reranker": True},
+    "A": {"label": "Dense (vector only)", "use_bm25": False, "use_reranker": False, "use_multi_query": False},
+    "B": {"label": "Hybrid (vector + BM25 + RRF)", "use_bm25": True, "use_reranker": False, "use_multi_query": False},
+    "C": {"label": "Hybrid + Reranker", "use_bm25": True, "use_reranker": True, "use_multi_query": False},
+    "D": {"label": "Hybrid + Reranker + Multi-Query", "use_bm25": True, "use_reranker": True, "use_multi_query": True},
 }
 
 K_VALUES = (1, 3, 5, 10)
@@ -145,7 +146,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--course-id", type=int, default=1)
     parser.add_argument("--repeats", type=int, default=3)
-    parser.add_argument("--configs", default="A,B,C")
+    parser.add_argument("--configs", default="A,B,C,D")
     parser.add_argument("--allow-stale-gold", action="store_true")
     parser.add_argument("--out-dir", default=str(OUT_DIR))
     args = parser.parse_args()
@@ -192,6 +193,12 @@ def main() -> None:
     _get_bm25_index(args.course_id, None)
     bm25_build_ms = (time.perf_counter() - t_bm25_build) * 1000
     print(f"[warmup] BM25 index build (one-off, cached afterward): {bm25_build_ms:.1f} ms")
+    if "C" in config_keys:
+        from backend.services.reranker import get_reranker_model
+        t_rerank_load = time.perf_counter()
+        get_reranker_model().predict([("warmup", "warmup")])
+        rerank_load_ms = (time.perf_counter() - t_rerank_load) * 1000
+        print(f"[warmup] Cross-encoder reranker model load (one-off): {rerank_load_ms:.1f} ms")
 
     # --- Main loop ---
     per_query_rows: list[dict] = []
@@ -210,6 +217,7 @@ def main() -> None:
                     top_k=10,
                     use_bm25=cfg["use_bm25"],
                     use_reranker=cfg["use_reranker"],
+                    use_multi_query=cfg["use_multi_query"],
                     timings=timings,
                 )
                 retrieved_keys = [chunk_key(c) for c in ranked]
@@ -230,6 +238,7 @@ def main() -> None:
                     "rank_of_first_relevant": rank_of_first or "",
                     "reciprocal_rank": reciprocal_rank,
                     "ndcg_at_10": ndcg_binary(hits, 10),
+                    "multi_query_ms": timings.get("multi_query_ms", 0.0),
                     "dense_ms": timings.get("dense_ms", 0.0),
                     "bm25_ms": timings.get("bm25_ms", 0.0),
                     "fusion_ms": timings.get("fusion_ms", 0.0),
@@ -281,7 +290,7 @@ def main() -> None:
         summary["latency_p95_ms"] = percentile(totals, 95)
         summary["stage_ms"] = {
             stage: sum(r[stage] for r in lat_rows) / len(lat_rows) if lat_rows else 0.0
-            for stage in ("dense_ms", "bm25_ms", "fusion_ms", "rerank_ms")
+            for stage in ("multi_query_ms", "dense_ms", "bm25_ms", "fusion_ms", "rerank_ms")
         }
         summary_rows.append(summary)
 

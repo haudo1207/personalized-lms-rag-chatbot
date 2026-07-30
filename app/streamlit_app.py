@@ -7,7 +7,6 @@ import pandas as pd
 import plotly.express as px
 import requests
 import streamlit as st
-from streamlit_option_menu import option_menu
 
 DEFAULT_API_URL = "http://127.0.0.1:8000"
 REQUEST_TIMEOUT = 120
@@ -15,8 +14,17 @@ REQUEST_TIMEOUT = 120
 LEVEL_LABELS = {"beginner": "Mới bắt đầu", "intermediate": "Trung bình", "advanced": "Nâng cao"}
 DIFFICULTY_LABELS = {"easy": "Dễ", "medium": "Trung bình", "hard": "Khó"}
 
-PAGE_NAMES = ["Dashboard", "Chat", "Tài liệu", "Kho tri thức", "Quiz", "Phân tích học tập", "Cài đặt"]
-PAGE_ICONS = ["speedometer2", "chat-dots", "folder2-open", "database", "pencil-square", "graph-up-arrow", "gear"]
+# "Chat" không nằm trong menu phụ — nó là trạng thái mặc định khi chọn 1 môn học,
+# giống việc mở 1 đoạn hội thoại trong ChatGPT.
+SECONDARY_PAGES = ["Dashboard", "Tài liệu", "Kho tri thức", "Quiz", "Phân tích học tập", "Cài đặt"]
+SECONDARY_PAGE_ICONS = {
+    "Dashboard": "📊",
+    "Tài liệu": "📁",
+    "Kho tri thức": "📚",
+    "Quiz": "📝",
+    "Phân tích học tập": "📈",
+    "Cài đặt": "⚙️",
+}
 
 PRIMARY = "#2563EB"
 SECONDARY = "#3B82F6"
@@ -188,11 +196,11 @@ def badge_html(text: str, kind: str = "ok") -> str:
     return f'<span class="status-badge {kind}">{text}</span>'
 
 
-def load_my_courses() -> list[dict[str, Any]]:
-    ok, payload, _ = request_json("GET", "/courses/mine", timeout=15)
+def load_my_courses() -> tuple[list[dict[str, Any]], bool, Any, int | None]:
+    ok, payload, code = request_json("GET", "/courses/mine", timeout=15)
     if ok and isinstance(payload, list):
-        return [item for item in payload if isinstance(item, dict)]
-    return []
+        return [item for item in payload if isinstance(item, dict)], True, payload, code
+    return [], False, payload, code
 
 
 def load_documents() -> list[dict[str, Any]]:
@@ -400,9 +408,9 @@ is_admin = current_user.get("role") == "admin"
 
 
 # -----------------------------------------------------------------------------
-# 4. SIDEBAR — HỒ SƠ + CHỌN MÔN HỌC + ĐIỀU HƯỚNG
+# 4. SIDEBAR — kiểu ChatGPT: danh sách "hội thoại" (môn học) + menu phụ ⋯ Thêm
 # -----------------------------------------------------------------------------
-pending_page_index = st.session_state.pop("pending_page_index", None)
+st.session_state.setdefault("active_page", "Chat")
 
 with st.sidebar:
     st.image("https://img.icons8.com/isometric-folders/100/chatbot.png", width=56)
@@ -410,24 +418,33 @@ with st.sidebar:
     st.caption("RAG · Cá nhân hóa học tập")
     st.markdown("---")
 
-    st.markdown("**📘 Môn học**")
-    courses = load_my_courses()
+    st.markdown("**💬 Hội thoại theo môn học**")
+    courses, courses_ok, courses_payload, courses_code = load_my_courses()
     selected_course: dict[str, Any] | None = None
     if courses:
-        course_labels = {f"{c['course_code']} — {c['course_name']}": c for c in courses}
-        course_labels_list = list(course_labels.keys())
-        default_course_index = 0
-        pending_code = st.session_state.get("pending_select_course_code")
-        if pending_code:
-            for i, c in enumerate(courses):
-                if c.get("course_code") == pending_code:
-                    default_course_index = i
-                    break
-            st.session_state["pending_select_course_code"] = None
-        picked_course_label = st.selectbox(
-            "Chọn môn học:", course_labels_list, index=default_course_index, label_visibility="collapsed"
-        )
-        selected_course = course_labels[picked_course_label]
+        pending_code = st.session_state.pop("pending_select_course_code", None)
+        active_code = pending_code or st.session_state.get("active_course_code")
+        if not any(c.get("course_code") == active_code for c in courses):
+            active_code = courses[0].get("course_code")
+        st.session_state["active_course_code"] = active_code
+
+        for c in courses:
+            is_active = c.get("course_code") == active_code
+            if st.button(
+                f"{c['course_code']} — {c['course_name']}",
+                key=f"course_btn_{c['id']}",
+                use_container_width=True,
+                type="primary" if is_active else "secondary",
+            ):
+                st.session_state["active_course_code"] = c.get("course_code")
+                st.session_state["active_page"] = "Chat"
+                st.rerun()
+            if is_active:
+                selected_course = c
+    elif not courses_ok:
+        show_api_error("Tải danh sách môn học", courses_payload, courses_code)
+        if courses_code in (401, 403):
+            st.warning("Phiên đăng nhập không hợp lệ hoặc hết hạn — vui lòng đăng xuất và đăng nhập lại.")
     else:
         st.info(
             "Bạn chưa được ghi danh môn học nào."
@@ -460,24 +477,16 @@ with st.sidebar:
                     st.warning("Nhập đầy đủ mã và tên môn học.")
 
     st.markdown("---")
-    selected_page = option_menu(
-        menu_title=None,
-        options=PAGE_NAMES,
-        icons=PAGE_ICONS,
-        default_index=pending_page_index if pending_page_index is not None else 0,
-        styles={
-            "container": {"padding": "0!important", "background-color": "transparent"},
-            "icon": {"color": PRIMARY, "font-size": "16px"},
-            "nav-link": {
-                "font-size": "14px",
-                "text-align": "left",
-                "margin": "2px 0",
-                "border-radius": "10px",
-                "--hover-color": "#EFF6FF",
-            },
-            "nav-link-selected": {"background-color": PRIMARY, "color": "white", "font-weight": "600"},
-        },
-    )
+    with st.popover("⋯ Thêm", use_container_width=True):
+        for page_name in SECONDARY_PAGES:
+            if st.button(
+                f"{SECONDARY_PAGE_ICONS[page_name]} {page_name}",
+                key=f"nav_btn_{page_name}",
+                use_container_width=True,
+                type="primary" if st.session_state["active_page"] == page_name else "secondary",
+            ):
+                st.session_state["active_page"] = page_name
+                st.rerun()
 
     st.markdown("---")
     course_documents_count = (
@@ -497,7 +506,15 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     if st.button("🚪 Đăng xuất", use_container_width=True):
-        for key in ("access_token", "current_user", "chat_threads", "chat_hydrated_keys", "dashboard_key"):
+        for key in (
+            "access_token",
+            "current_user",
+            "chat_threads",
+            "chat_hydrated_keys",
+            "dashboard_key",
+            "active_page",
+            "active_course_code",
+        ):
             st.session_state.pop(key, None)
         st.rerun()
 
@@ -563,13 +580,13 @@ def render_dashboard_page() -> None:
     with col_actions:
         st.markdown("##### ⚡ Thao tác nhanh")
         if st.button("💬 Trò chuyện ngay", use_container_width=True, type="primary"):
-            st.session_state["pending_page_index"] = 1
+            st.session_state["active_page"] = "Chat"
             st.rerun()
         if st.button("📤 Upload tài liệu", use_container_width=True):
-            st.session_state["pending_page_index"] = 2
+            st.session_state["active_page"] = "Tài liệu"
             st.rerun()
         if st.button("📊 Xem phân tích học tập", use_container_width=True):
-            st.session_state["pending_page_index"] = 5
+            st.session_state["active_page"] = "Phân tích học tập"
             st.rerun()
 
     weak_topics = dashboard.get("weak_topics", [])
@@ -585,6 +602,9 @@ def render_dashboard_page() -> None:
 # 5. TRANG CHAT — hội thoại thật + panel Ngữ cảnh tri thức
 # -----------------------------------------------------------------------------
 def render_chat_page() -> None:
+    thread_key = ensure_chat_thread(user_id, course_id)
+    thread = st.session_state.chat_threads[thread_key]
+
     col_main, col_context = st.columns([7, 3], gap="large")
 
     with col_main:
@@ -609,28 +629,34 @@ def render_chat_page() -> None:
                 )
                 filter_doc_ids = [doc_filter_options[label] for label in selected_docs]
 
-        st.caption("💡 Câu hỏi gợi ý — bấm để gửi ngay:")
-        p1, p2, p3 = st.columns(3)
-        preset_prompt = None
-        if p1.button("🔑 Khóa chính là gì?", use_container_width=True):
-            preset_prompt = "Khóa chính là gì?"
-        if p2.button("🔀 INNER vs LEFT JOIN?", use_container_width=True):
-            preset_prompt = "INNER JOIN khác LEFT JOIN như thế nào?"
-        if p3.button("📐 Chuẩn hóa 3NF?", use_container_width=True):
-            preset_prompt = "3NF giúp giải quyết phụ thuộc hàm nào?"
-
-        thread_key = ensure_chat_thread(user_id, course_id)
-        thread = st.session_state.chat_threads[thread_key]
-
         if thread and thread[-1]["role"] == "assistant":
             st.session_state.last_sources = thread[-1].get("sources", [])
         elif "last_sources" not in st.session_state:
             st.session_state.last_sources = []
 
-        chat_box = st.container(height=420, border=True)
-        with chat_box:
-            if not thread:
-                st.info("Chưa có hội thoại nào trong môn học này. Hãy đặt câu hỏi bên dưới!")
+        preset_prompt = None
+        if not thread:
+            st.markdown(
+                f"""
+                <div style="text-align:center; padding: 40px 12px 20px;">
+                    <div style="font-size:1.6rem; font-weight:700; color:#0F172A;">
+                        Bạn cần hỗ trợ gì cho {selected_course['course_name']}?
+                    </div>
+                    <div style="color:#64748B; margin-top:6px;">
+                        Đặt câu hỏi bên dưới, hoặc thử một gợi ý:
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            p1, p2, p3 = st.columns(3)
+            if p1.button("🔑 Khóa chính là gì?", use_container_width=True):
+                preset_prompt = "Khóa chính là gì?"
+            if p2.button("🔀 INNER vs LEFT JOIN?", use_container_width=True):
+                preset_prompt = "INNER JOIN khác LEFT JOIN như thế nào?"
+            if p3.button("📐 Chuẩn hóa 3NF?", use_container_width=True):
+                preset_prompt = "3NF giúp giải quyết phụ thuộc hàm nào?"
+        else:
             for msg in thread:
                 avatar = "🧑‍🎓" if msg["role"] == "user" else "🤖"
                 with st.chat_message(msg["role"], avatar=avatar):
@@ -643,41 +669,40 @@ def render_chat_page() -> None:
 
         if question_to_send:
             thread.append({"role": "user", "content": question_to_send})
-            with chat_box:
-                with st.chat_message("user", avatar="🧑‍🎓"):
-                    st.markdown(question_to_send)
-                with st.chat_message("assistant", avatar="🤖"):
-                    with st.spinner("🔍 Đang truy xuất tài liệu & sinh câu trả lời..."):
-                        ok, payload, status_code = request_json(
-                            "POST",
-                            "/chat/",
-                            json_body={
-                                "user_id": user_id,
-                                "course_id": course_id,
-                                "question": question_to_send,
-                                "top_k": top_k,
-                                "document_ids": filter_doc_ids if filter_doc_ids else None,
-                            },
-                        )
-                    if ok and isinstance(payload, dict):
-                        assistant_msg = {
-                            "role": "assistant",
-                            "content": payload.get("answer", ""),
-                            "topic": payload.get("topic"),
-                            "latency": payload.get("latency"),
-                            "weak_topic": payload.get("weak_topic"),
-                            "sources": payload.get("sources", []),
-                        }
-                        st.markdown(assistant_msg["content"])
-                        render_assistant_meta(assistant_msg)
-                        thread.append(assistant_msg)
-                        st.session_state.last_sources = assistant_msg["sources"]
-                    else:
-                        detail = payload.get("detail") if isinstance(payload, dict) else payload
-                        error_text = f"⚠️ Không lấy được câu trả lời: {detail}"
-                        st.error(error_text)
-                        thread.append({"role": "assistant", "content": error_text})
-                        st.session_state.last_sources = []
+            with st.chat_message("user", avatar="🧑‍🎓"):
+                st.markdown(question_to_send)
+            with st.chat_message("assistant", avatar="🤖"):
+                with st.spinner("🔍 Đang truy xuất tài liệu & sinh câu trả lời..."):
+                    ok, payload, status_code = request_json(
+                        "POST",
+                        "/chat/",
+                        json_body={
+                            "user_id": user_id,
+                            "course_id": course_id,
+                            "question": question_to_send,
+                            "top_k": top_k,
+                            "document_ids": filter_doc_ids if filter_doc_ids else None,
+                        },
+                    )
+                if ok and isinstance(payload, dict):
+                    assistant_msg = {
+                        "role": "assistant",
+                        "content": payload.get("answer", ""),
+                        "topic": payload.get("topic"),
+                        "latency": payload.get("latency"),
+                        "weak_topic": payload.get("weak_topic"),
+                        "sources": payload.get("sources", []),
+                    }
+                    st.markdown(assistant_msg["content"])
+                    render_assistant_meta(assistant_msg)
+                    thread.append(assistant_msg)
+                    st.session_state.last_sources = assistant_msg["sources"]
+                else:
+                    detail = payload.get("detail") if isinstance(payload, dict) else payload
+                    error_text = f"⚠️ Không lấy được câu trả lời: {detail}"
+                    st.error(error_text)
+                    thread.append({"role": "assistant", "content": error_text})
+                    st.session_state.last_sources = []
 
     with col_context:
         st.markdown("##### 🧠 Ngữ cảnh tri thức")
@@ -1118,4 +1143,4 @@ PAGE_RENDERERS = {
     "Cài đặt": render_settings_page,
 }
 
-PAGE_RENDERERS[selected_page]()
+PAGE_RENDERERS[st.session_state["active_page"]]()

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
+from backend.config import get_settings
 from backend.database import get_db
 from backend.models.document import Document
 from backend.services.chunking import create_chunks
@@ -16,8 +17,8 @@ from backend.services.vector_store import add_chunks_to_vector_store
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
-RAW_DIR = Path("data/raw")
-PROCESSED_DIR = Path("data/processed")
+RAW_DIR = Path(get_settings().raw_dir)
+PROCESSED_DIR = Path(get_settings().processed_dir)
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
 RAW_DIR.mkdir(parents=True, exist_ok=True)

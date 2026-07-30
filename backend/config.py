@@ -1,20 +1,17 @@
 from functools import lru_cache
-from pydantic import BaseModel
-from dotenv import load_dotenv
-import os
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-load_dotenv()
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
-
-
-class Settings(BaseModel):
-    gemini_api_key: str = GEMINI_API_KEY
-    gemini_model: str = GEMINI_MODEL
-    database_url: str = os.getenv("DATABASE_URL", "sqlite:///./app.db")
-    vector_db_path: str = os.getenv("VECTOR_DB_PATH", "./vector_store")
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.0-flash"
+    database_url: str = "sqlite:///./app.db"
+    vector_db_path: str = "./vector_store"
+    raw_dir: str = "data/raw"
+    processed_dir: str = "data/processed"
 
 
 @lru_cache

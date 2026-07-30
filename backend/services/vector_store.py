@@ -1,13 +1,13 @@
 import chromadb
 
+from backend.config import get_settings
 from backend.services.embedding_service import embed_text, embed_texts
 
 
-VECTOR_DB_PATH = "vector_store"
 COLLECTION_NAME = "learning_documents"
 
 
-client = chromadb.PersistentClient(path=VECTOR_DB_PATH)
+client = chromadb.PersistentClient(path=get_settings().vector_db_path)
 collection = client.get_or_create_collection(
     name=COLLECTION_NAME,
     metadata={"hnsw:space": "cosine"},

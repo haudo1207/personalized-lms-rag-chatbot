@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 
 from backend.database import Base, engine
 from backend.models.chat_history import ChatHistory
@@ -30,11 +29,11 @@ app.include_router(quiz.router)
 app.include_router(dashboard.router)
 
 
+@app.get("/")
+def root() -> dict[str, str]:
+    return {"message": "RAG Learning Chatbot API is running"}
+
+
 @app.get("/health")
 def health_check() -> dict[str, str]:
     return {"status": "ok"}
-
-
-# Serve the custom HTML/CSS/JS frontend from the same origin as the API (no CORS needed).
-# Mounted last so API routes above are matched first; anything else falls through to static files.
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")

@@ -5,8 +5,8 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from backend.database import get_db
+from backend.models.course import Course
 from backend.models.user import User
-from backend.models.user_course import UserCourse
 from backend.services.auth_service import decode_access_token
 
 
@@ -53,12 +53,11 @@ def require_self_or_admin(target_user_id: int, current_user: User) -> None:
 
 
 def verify_course_access(course_id: int, current_user: User, db: Session) -> None:
+    """Ownership-based: a course belongs to the student who created it. Admin
+    keeps a blanket override (same pattern as require_self_or_admin elsewhere)
+    for support/debugging, not because students need role-gating."""
     if current_user.role == "admin":
         return
-    enrolled = (
-        db.query(UserCourse)
-        .filter(UserCourse.user_id == current_user.id, UserCourse.course_id == course_id)
-        .first()
-    )
-    if not enrolled:
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course or course.owner_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Bạn không có quyền truy cập môn học này.")

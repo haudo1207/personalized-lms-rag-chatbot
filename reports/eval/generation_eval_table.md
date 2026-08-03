@@ -2,6 +2,6 @@
 
 | Chỉ số | Giá trị |
 |---|---|
-| Faithfulness (trung thực với ngữ cảnh) | 0.991 (n=16) |
-| Answer Relevancy (đúng trọng tâm câu hỏi) | 0.605 (n=16) |
-| Số câu trả lời 'không đủ thông tin' | 4/20 |
+| Faithfulness (trung thực với ngữ cảnh) | 0.982 (n=43) |
+| Answer Relevancy (đúng trọng tâm câu hỏi) | 0.693 (n=43) |
+| Số câu trả lời 'không đủ thông tin' | 7/50 |

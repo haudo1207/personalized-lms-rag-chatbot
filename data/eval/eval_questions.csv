@@ -1,21 +1,67 @@
-id,course_id,question,ground_truth,topic,question_type
-1,1,"Khóa chính là gì?","Khóa chính là thuộc tính hoặc tập thuộc tính dùng để xác định duy nhất mỗi bản ghi trong bảng.","Khóa chính","definition"
-2,1,"Khóa ngoại dùng để làm gì?","Khóa ngoại dùng để liên kết dữ liệu giữa các bảng và tham chiếu đến khóa chính của bảng khác.","Khóa ngoại","definition"
-3,1,"INNER JOIN khác LEFT JOIN như thế nào?","INNER JOIN lấy các bản ghi khớp ở cả hai bảng, còn LEFT JOIN giữ toàn bộ bản ghi của bảng bên trái và ghép dữ liệu khớp từ bảng bên phải.","SQL JOIN","comparison"
-4,1,"Chuẩn hóa cơ sở dữ liệu là gì?","Chuẩn hóa là quá trình tổ chức dữ liệu để giảm dư thừa và hạn chế bất thường khi thêm, sửa, xóa dữ liệu.","Chuẩn hóa cơ sở dữ liệu","definition"
-5,1,"1NF yêu cầu điều gì?","1NF yêu cầu mỗi ô dữ liệu chứa giá trị nguyên tử, không có nhóm lặp hoặc danh sách nhiều giá trị trong một ô.","Chuẩn hóa cơ sở dữ liệu","definition"
-6,1,"2NF khắc phục vấn đề gì?","2NF khắc phục phụ thuộc bộ phận bằng cách bảo đảm thuộc tính không khóa phụ thuộc vào toàn bộ khóa chính.","Chuẩn hóa cơ sở dữ liệu","definition"
-7,1,"3NF giúp giảm loại phụ thuộc nào?","3NF giúp loại bỏ phụ thuộc bắc cầu giữa các thuộc tính không khóa.","Chuẩn hóa cơ sở dữ liệu","definition"
-8,1,"ERD dùng để làm gì?","ERD dùng để mô hình hóa thực thể, thuộc tính và mối quan hệ giữa các thực thể trong hệ thống dữ liệu.","ERD","definition"
-9,1,"Thực thể trong ERD là gì?","Thực thể là đối tượng hoặc khái niệm cần lưu trữ thông tin trong hệ thống, ví dụ Sinh viên hoặc Môn học.","ERD","definition"
-10,1,"Mối quan hệ một-nhiều trong ERD nghĩa là gì?","Mối quan hệ một-nhiều nghĩa là một bản ghi ở thực thể này có thể liên kết với nhiều bản ghi ở thực thể khác.","ERD","definition"
-11,1,"Vì sao cần khóa chính trong bảng?","Khóa chính giúp định danh duy nhất từng bản ghi, tránh trùng lặp và hỗ trợ liên kết dữ liệu.","Khóa chính","reasoning"
-12,1,"Khóa chính có được để trống không?","Khóa chính không nên để trống vì nó phải xác định duy nhất mỗi bản ghi trong bảng.","Khóa chính","constraint"
-13,1,"Khóa ngoại có thể trùng giá trị không?","Khóa ngoại có thể trùng giá trị vì nhiều bản ghi có thể tham chiếu đến cùng một bản ghi ở bảng cha.","Khóa ngoại","constraint"
-14,1,"LEFT JOIN trả về dữ liệu gì khi bảng phải không khớp?","LEFT JOIN vẫn trả về bản ghi từ bảng trái và các cột của bảng phải sẽ là NULL nếu không có dữ liệu khớp.","SQL JOIN","behavior"
-15,1,"RIGHT JOIN khác LEFT JOIN ở điểm nào?","RIGHT JOIN giữ toàn bộ bản ghi của bảng bên phải, còn LEFT JOIN giữ toàn bộ bản ghi của bảng bên trái.","SQL JOIN","comparison"
-16,1,"FULL OUTER JOIN dùng khi nào?","FULL OUTER JOIN dùng khi cần lấy tất cả bản ghi từ cả hai bảng, kể cả khi không có dữ liệu khớp.","SQL JOIN","usage"
-17,1,"Dư thừa dữ liệu gây vấn đề gì?","Dư thừa dữ liệu có thể gây tốn dung lượng và tạo bất nhất khi cập nhật dữ liệu.","Chuẩn hóa cơ sở dữ liệu","reasoning"
-18,1,"Phụ thuộc hàm là gì?","Phụ thuộc hàm mô tả quan hệ trong đó giá trị của một thuộc tính xác định giá trị của thuộc tính khác.","Chuẩn hóa cơ sở dữ liệu","definition"
-19,1,"Ràng buộc toàn vẹn tham chiếu liên quan đến gì?","Ràng buộc toàn vẹn tham chiếu bảo đảm giá trị khóa ngoại phải tham chiếu đến bản ghi hợp lệ ở bảng được tham chiếu.","Khóa ngoại","definition"
-20,1,"Khi nào nên dùng INNER JOIN?","Nên dùng INNER JOIN khi chỉ cần các bản ghi có dữ liệu khớp ở cả hai bảng.","SQL JOIN","usage"
+id,course_id,question,ground_truth,topic,question_type,split
+1,1,Khóa chính là gì?,Khóa chính là thuộc tính hoặc tập thuộc tính dùng để xác định duy nhất mỗi bản ghi trong bảng.,Khóa chính,definition,dev
+2,1,Khóa ngoại dùng để làm gì?,Khóa ngoại dùng để liên kết dữ liệu giữa các bảng và tham chiếu đến khóa chính của bảng khác.,Khóa ngoại,definition,dev
+3,1,INNER JOIN khác LEFT JOIN như thế nào?,"INNER JOIN lấy các bản ghi khớp ở cả hai bảng, còn LEFT JOIN giữ toàn bộ bản ghi của bảng bên trái và ghép dữ liệu khớp từ bảng bên phải.",SQL JOIN,comparison,dev
+4,1,Chuẩn hóa cơ sở dữ liệu là gì?,"Chuẩn hóa là quá trình tổ chức dữ liệu để giảm dư thừa và hạn chế bất thường khi thêm, sửa, xóa dữ liệu.",Chuẩn hóa cơ sở dữ liệu,definition,dev
+5,1,1NF yêu cầu điều gì?,"1NF yêu cầu mỗi ô dữ liệu chứa giá trị nguyên tử, không có nhóm lặp hoặc danh sách nhiều giá trị trong một ô.",Chuẩn hóa cơ sở dữ liệu,definition,test
+6,1,2NF khắc phục vấn đề gì?,2NF khắc phục phụ thuộc bộ phận bằng cách bảo đảm thuộc tính không khóa phụ thuộc vào toàn bộ khóa chính.,Chuẩn hóa cơ sở dữ liệu,definition,dev
+7,1,3NF giúp giảm loại phụ thuộc nào?,3NF giúp loại bỏ phụ thuộc bắc cầu giữa các thuộc tính không khóa.,Chuẩn hóa cơ sở dữ liệu,definition,dev
+8,1,ERD dùng để làm gì?,"ERD dùng để mô hình hóa thực thể, thuộc tính và mối quan hệ giữa các thực thể trong hệ thống dữ liệu.",ERD,definition,dev
+9,1,Thực thể trong ERD là gì?,"Thực thể là đối tượng hoặc khái niệm cần lưu trữ thông tin trong hệ thống, ví dụ Sinh viên hoặc Môn học.",ERD,definition,dev
+10,1,Mối quan hệ một-nhiều trong ERD nghĩa là gì?,Mối quan hệ một-nhiều nghĩa là một bản ghi ở thực thể này có thể liên kết với nhiều bản ghi ở thực thể khác.,ERD,definition,test
+11,1,Vì sao cần khóa chính trong bảng?,"Khóa chính giúp định danh duy nhất từng bản ghi, tránh trùng lặp và hỗ trợ liên kết dữ liệu.",Khóa chính,reasoning,dev
+12,1,Khóa chính có được để trống không?,Khóa chính không nên để trống vì nó phải xác định duy nhất mỗi bản ghi trong bảng.,Khóa chính,constraint,dev
+13,1,Khóa ngoại có thể trùng giá trị không?,Khóa ngoại có thể trùng giá trị vì nhiều bản ghi có thể tham chiếu đến cùng một bản ghi ở bảng cha.,Khóa ngoại,constraint,dev
+14,1,LEFT JOIN trả về dữ liệu gì khi bảng phải không khớp?,LEFT JOIN vẫn trả về bản ghi từ bảng trái và các cột của bảng phải sẽ là NULL nếu không có dữ liệu khớp.,SQL JOIN,behavior,dev
+15,1,RIGHT JOIN khác LEFT JOIN ở điểm nào?,"RIGHT JOIN giữ toàn bộ bản ghi của bảng bên phải, còn LEFT JOIN giữ toàn bộ bản ghi của bảng bên trái.",SQL JOIN,comparison,test
+16,1,FULL OUTER JOIN dùng khi nào?,"FULL OUTER JOIN dùng khi cần lấy tất cả bản ghi từ cả hai bảng, kể cả khi không có dữ liệu khớp.",SQL JOIN,usage,dev
+17,1,Dư thừa dữ liệu gây vấn đề gì?,Dư thừa dữ liệu có thể gây tốn dung lượng và tạo bất nhất khi cập nhật dữ liệu.,Chuẩn hóa cơ sở dữ liệu,reasoning,dev
+18,1,Phụ thuộc hàm là gì?,Phụ thuộc hàm mô tả quan hệ trong đó giá trị của một thuộc tính xác định giá trị của thuộc tính khác.,Chuẩn hóa cơ sở dữ liệu,definition,dev
+19,1,Ràng buộc toàn vẹn tham chiếu liên quan đến gì?,Ràng buộc toàn vẹn tham chiếu bảo đảm giá trị khóa ngoại phải tham chiếu đến bản ghi hợp lệ ở bảng được tham chiếu.,Khóa ngoại,definition,dev
+20,1,Khi nào nên dùng INNER JOIN?,Nên dùng INNER JOIN khi chỉ cần các bản ghi có dữ liệu khớp ở cả hai bảng.,SQL JOIN,usage,test
+21,1,"Theo đoạn văn bản, vì sao một phụ thuộc hàm X → Y vi phạm BCNF khi X+ không chứa tất cả các thuộc tính trong Q?",Vì X không phải là một siêu khóa.,Chuẩn hóa cơ sở dữ liệu,comparison,dev
+22,1,Có bao nhiêu quy tắc suy diễn đối với các phụ thuộc hàm?,6 quy tắc.,Chuẩn hóa cơ sở dữ liệu,comparison,dev
+23,1,"Có bao nhiêu mức để nói về ""tính tốt"" của các lược đồ quan hệ?",Hai mức.,Chuẩn hóa cơ sở dữ liệu,usage,dev
+24,1,Tại sao hai bảng được đề cập trong đoạn văn bản lại đạt dạng chuẩn 4NF?,Vì các phụ thuộc đa trị TênNV→→TênDA và TênNV→→TênconNV là các phụ thuộc đa trị tầm thường.,Chuẩn hóa cơ sở dữ liệu,definition,dev
+25,1,Các khóa còn lại sau khi một trong những khóa dự tuyển được chỉ định làm khóa chính được gọi là gì?,Các khóa phụ.,Chuẩn hóa cơ sở dữ liệu,usage,test
+26,1,Định nghĩa mạnh hơn cho dạng chuẩn 3 được gọi là gì?,Dạng chuẩn Boyce-Codd.,Chuẩn hóa cơ sở dữ liệu,usage,dev
+27,1,Vai trò của mô hình dữ liệu bậc cao được thảo luận trong chương là gì?,Vai trò trong quá trình thiết kế cơ sở dữ liệu.,ERD,definition,dev
+28,1,Thuộc tính đơn trị là gì?,Là thuộc tính có giá trị duy nhất cho một thực thể cụ thể.,ERD,comparison,dev
+29,1,"Theo ghi chép, ""Trường"" được chia thành các trường con nào?","Trường KHTN, Trường KHXH, Trường Công nghệ.",ERD,comparison,dev
+30,1,Kiểu liên kết lớp cha/ lớp con thường được gọi là gì?,Kiểu liên kết là một (IS_A).,ERD,behavior,test
+31,1,Thực thể diễn đạt điều gì?,Một đối tượng hoặc một khái niệm của thế giới thực.,ERD,behavior,dev
+32,1,Cấu trúc của một cơ sở dữ liệu là gì?,"Là các kiểu dữ liệu, các mối liên kết và các ràng buộc phải tuân theo trên các dữ liệu.",ERD,definition,dev
+33,1,Khoá chính của R là gì?,Một tổ hợp của A và K.,Khóa chính,constraint,dev
+34,1,Tại sao phép chèn bộ giá trị vào quan hệ NHÂNVIÊN bị loại bỏ?,Vì nó vi phạm ràng buộc toàn vẹn thực thể.,Khóa chính,comparison,dev
+35,1,"Trong phần này, nội dung nghiên cứu chính là gì?",Các dạng chuẩn và quá trình chuẩn hoá các lược đồ quan hệ.,Khóa chính,constraint,test
+36,1,Khóa chính của quan hệ CUNGCẤP gồm những thuộc tính nào?,"MãsốĐL, MãsốVT, MãsốDA",Khóa chính,behavior,dev
+37,1,"Theo định nghĩa nguyên thuỷ của Codd, khi nào một lược đồ quan hệ R được coi là ở dạng chuẩn 3NF?",Một lược đồ quan hệ R là ở 3NF nếu nó thoả mãn 2NF và không có thuộc tính không khoá nào của R là phụ thuộc bắc cầu vào khoá chính.,Khóa chính,reasoning,dev
+38,1,Tại sao quan hệ trong đoạn văn bản lại vi phạm dạng chuẩn BCNF?,Bởi vì có thuộc tính khóa (A2) phụ thuộc hàm vào thuộc tính không khóa (A4).,Khóa chính,definition,dev
+39,1,Phép xoá chỉ có thể vi phạm ràng buộc tham chiếu trong trường hợp nào?,Khi bộ bị xoá được tham chiếu bởi một khoá ngoài từ các bộ khác trong cơ sở dữ liệu.,Khóa ngoại,reasoning,dev
+40,1,Khoá chính của quan hệ mới S (biểu diễn kiểu liên kết N:M) được hình thành như thế nào?,Là tổ hợp các khoá chính của các quan hệ biểu diễn các kiểu thực thể tham gia.,Khóa ngoại,definition,test
+41,1,"Khi chuyển sang quan hệ ĐƠNVỊ, tại sao thuộc tính MãsốNV được đổi tên thành MãsốNQL?",Để làm rõ vai trò người quản lý.,Khóa ngoại,definition,dev
+42,1,Sự toàn vẹn thực thể có thể bị vi phạm khi nào trong phép chèn?,Nếu khoá chính của bộ mới t là null.,Khóa ngoại,constraint,dev
+43,1,Chúng ta có thể biểu diễn các ràng buộc tham chiếu bằng cách nào?,Bằng sơ đồ.,Khóa ngoại,definition,dev
+44,1,"Để biểu diễn các ràng buộc tham chiếu bằng sơ đồ, ta làm thế nào?",Vẽ một cạnh có hướng từ mỗi khoá ngoài đến quan hệ mà nó tham chiếu đến.,Khóa ngoại,reasoning,dev
+45,1,Tại sao các phép toán nối được đưa vào trong đại số quan hệ?,Do tiện dụng hơn là do cần thiết.,SQL JOIN,definition,test
+46,1,Bộ giả là gì và chúng được sinh ra như thế nào?,"Là các bộ giá trị không đúng, được sinh ra khi áp dụng các phép toán (nhất là các phép nối) trên những quan hệ không đúng trong cơ sở dữ liệu.",SQL JOIN,constraint,dev
+47,1,Tỷ lệ được tạo thành bởi cỡ của một kết quả nối chia cho cỡ cực đại nR. nS được gọi là gì?,Chọn lựa nối,SQL JOIN,definition,dev
+48,1,Tích Đề các còn được gọi bằng những tên nào khác?,Tích hỗn hợp (cross product) hoặc nối hỗn hợp (cross join).,SQL JOIN,behavior,dev
+49,1,Điều gì xảy ra với các thuộc tính của quan hệ S trong kết quả phép nối ngoài trái nếu không có bộ liên kết nào được tìm thấy?,Các thuộc tính của S được “làm đầy” bằng các giá trị null.,SQL JOIN,reasoning,dev
+50,1,Nội dung số 9 trong đoạn văn bản yêu cầu định nghĩa khái niệm gì?,Khóa ngoài.,SQL JOIN,usage,test
+51,2,Cột MASV trong bảng DIEMTHI là loại khoá gì và tham chiếu đến đâu?,Là khoá ngoài tham chiếu đến cột MASV của bảng SINHVIEN.,ERD,comparison,dev
+52,2,Một dòng trong bảng biểu diễn cho điều gì?,Một thực thể.,ERD,comparison,dev
+53,2,Mục đích ban đầu khi SQL được xây dựng là gì?,Truy xuất dữ liệu.,ERD,comparison,dev
+54,2,Một câu lệnh nối (join) được bắt đầu với từ khóa nào?,SELECT.,ERD,usage,dev
+55,2,"Từ hai cột tham gia vào điều kiện của phép nối, có bao nhiêu cột được giữ lại trong danh sách chọn của câu lệnh?",Một cột.,Khóa chính,definition,test
+56,2,Khóa chính của bảng `diemthi` bao gồm những cột nào?,"`mamonhoc`, `masv`",Khóa chính,definition,dev
+57,2,Làm thế nào để loại bỏ các cột trùng tên trong kết quả truy vấn phép nối bằng?,Bằng cách chỉ định danh sách cột cần được hiển thị trong danh sách chọn của câu lệnh.,Khóa chính,definition,dev
+58,2,Một trigger có thể được định nghĩa để kích hoạt khi xảy ra những sự kiện nào?,"INSERT, UPDATE, DELETE.",Khóa chính,comparison,dev
+59,2,"Trong danh sách chọn của câu lệnh, có bao nhiêu cột được giữ lại từ hai cột tham gia vào điều kiện của phép nối?",Một cột.,Khóa ngoại,behavior,dev
+60,2,Trong trường hợp nào ta có thể không thể định nghĩa ràng buộc FOREIGN KEY ngay trong câu lệnh CREATE TABLE mà phải định nghĩa thông qua lệnh ALTER TABLE?,Khi các bảng có mối quan hệ vòng.,Khóa ngoại,comparison,test
+61,2,"Sau khi xoá một bảng bằng lệnh DROP TABLE, có thể khôi phục lại bảng và dữ liệu của nó không?",Không thể khôi phục lại bảng cũng như dữ liệu của nó.,Khóa ngoại,usage,dev
+62,2,Mối quan hệ giữa các bảng trong cơ sở dữ liệu nhằm mục đích gì?,Nhằm đảm bảo tính đúng đắn và hợp lệ của dữ liệu.,Khóa ngoại,usage,dev
+63,2,Tên của hàm được định nghĩa trong đoạn văn bản là gì?,Func_Tongsv,SQL JOIN,definition,dev
+64,2,"Câu lệnh SQL nào được liệt kê để chọn các trường 'ho', 'ten', 'yea' từ bảng 'nhanvien'?","SELECT ho,ten,yea FROM nhanvien",SQL JOIN,comparison,dev
+65,2,Lệnh IF UPDATE có được sử dụng đối với câu lệnh DELETE không?,Không.,SQL JOIN,usage,test
+66,2,Tên của giáo trình được trích dẫn là gì?,SQL,SQL JOIN,constraint,dev

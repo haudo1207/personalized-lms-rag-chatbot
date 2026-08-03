@@ -3,13 +3,12 @@ from fastapi import FastAPI
 from backend.database import Base, engine
 from backend.models.chat_history import ChatHistory
 from backend.models.course import Course
+from backend.models.course_topic import CourseTopic
 from backend.models.document import Document
 from backend.models.quiz_result import QuizResult
+from backend.models.quiz_session import QuizSession
 from backend.models.user import User
-from backend.models.user_course import UserCourse
 from backend.models.weak_topic import WeakTopic
-from backend.models.user_profile import UserProfile
-from backend.models.recommendation_history import RecommendationHistory
 from backend.routers import auth, chat, courses, dashboard, documents, quiz, retrieval, users
 
 

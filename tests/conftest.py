@@ -7,16 +7,24 @@ for the first time, since backend.database and backend.services.vector_store
 build their engine/client at import time.
 
 Auth note: every user/course-scoped endpoint now requires a Bearer token (see
-backend/security_deps.py), and creating users/courses is admin-only. Since a
-fresh test database has no admin yet, `_admin_bootstrap` creates one directly
-via the DB session (bypassing the API, which is exactly the chicken-and-egg
-problem an admin-only /users/ endpoint has on a brand new system) and logs in
-through the real /auth/login endpoint to get a genuine JWT for the rest of
-the fixtures to use.
+backend/security_deps.py). Creating users is admin-only; creating courses is
+NOT (ownership model -- any authenticated user owns the courses they create).
+Since a fresh test database has no admin yet, `_admin_bootstrap` creates one
+directly via the DB session (bypassing the API, which is exactly the
+chicken-and-egg problem an admin-only /users/ endpoint has on a brand new
+system) and logs in through the real /auth/login endpoint to get a genuine
+JWT for the rest of the fixtures to use.
+
+Course access note: a course belongs to whoever created it (`owner_id`).
+`new_course` is created by `user_headers` (the primary test student), so it
+is automatically accessible to that student -- there is no separate
+enrollment step anymore. `second_user_headers` is a distinct student who does
+NOT own `new_course`, for testing the ownership boundary (403s).
 """
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 import tempfile
@@ -45,6 +53,19 @@ from backend.services.auth_service import hash_password  # noqa: E402
 
 TEST_PASSWORD = "TestPass@123"
 ADMIN_EMAIL = "test_admin@example.com"
+
+FAKE_TAXONOMY_JSON = json.dumps(["Khoa chinh", "Khoa ngoai", "SQL JOIN", "Chuan hoa CSDL", "ERD"])
+
+
+@pytest.fixture(autouse=True)
+def _mock_topic_taxonomy_llm(monkeypatch):
+    """Document upload now triggers one-time per-course topic-taxonomy
+    generation (backend/services/topic_taxonomy.py), which calls the LLM.
+    Every test that uploads a document would otherwise make a real Gemini
+    call -- mocked here globally, same convention as the other generate_answer
+    monkeypatches in individual tests (mock the name bound in the *consuming*
+    module, not llm_service itself)."""
+    monkeypatch.setattr("backend.services.topic_taxonomy.generate_answer", lambda prompt: FAKE_TAXONOMY_JSON)
 
 
 @pytest.fixture()
@@ -109,13 +130,15 @@ def user_headers(client: TestClient, new_user: dict) -> dict:
 
 
 @pytest.fixture()
-def new_course(client: TestClient, unique_suffix: str, admin_headers: dict) -> dict:
+def second_user(client: TestClient, unique_suffix: str, admin_headers: dict) -> dict:
     resp = client.post(
-        "/courses/",
+        "/users/",
         json={
-            "course_code": f"TST{unique_suffix}",
-            "course_name": f"Test Course {unique_suffix}",
-            "description": "Course created for automated tests.",
+            "full_name": f"Second User {unique_suffix}",
+            "email": f"second_{unique_suffix}@example.com",
+            "password": TEST_PASSWORD,
+            "role": "student",
+            "level": "beginner",
         },
         headers=admin_headers,
     )
@@ -124,16 +147,27 @@ def new_course(client: TestClient, unique_suffix: str, admin_headers: dict) -> d
 
 
 @pytest.fixture()
-def enrolled_course(client: TestClient, new_user: dict, new_course: dict, admin_headers: dict) -> dict:
-    """new_course, with new_user already enrolled -- required for any user-scoped call
-    (chat/quiz/documents/dashboard) to pass verify_course_access."""
+def second_user_headers(client: TestClient, second_user: dict) -> dict:
+    resp = client.post("/auth/login", json={"email": second_user["email"], "password": TEST_PASSWORD})
+    assert resp.status_code == 200, resp.text
+    return {"Authorization": f"Bearer {resp.json()['access_token']}"}
+
+
+@pytest.fixture()
+def new_course(client: TestClient, unique_suffix: str, user_headers: dict) -> dict:
+    """Owned by `user_headers` (the primary test student) -- ownership model,
+    so no separate enrollment step is needed for that student to use it."""
     resp = client.post(
-        f"/courses/{new_course['id']}/enroll",
-        json={"user_id": new_user["id"]},
-        headers=admin_headers,
+        "/courses/",
+        json={
+            "course_code": f"TST{unique_suffix}",
+            "course_name": f"Test Course {unique_suffix}",
+            "description": "Course created for automated tests.",
+        },
+        headers=user_headers,
     )
     assert resp.status_code == 201, resp.text
-    return new_course
+    return resp.json()
 
 
 SAMPLE_DOCUMENT_TEXT = (
@@ -147,12 +181,12 @@ SAMPLE_DOCUMENT_TEXT = (
 def uploaded_document(
     client: TestClient,
     new_user: dict,
-    enrolled_course: dict,
+    new_course: dict,
     user_headers: dict,
 ) -> dict:
     resp = client.post(
         "/documents/upload",
-        data={"course_id": enrolled_course["id"], "user_id": new_user["id"]},
+        data={"course_id": new_course["id"], "user_id": new_user["id"]},
         files={"file": ("notes.txt", SAMPLE_DOCUMENT_TEXT, "text/plain")},
         headers=user_headers,
     )

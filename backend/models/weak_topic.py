@@ -1,13 +1,13 @@
 from datetime import datetime
-from sqlalchemy import Column, DateTime, Integer, String, Float
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Float
 from backend.database import Base
 
 class WeakTopic(Base):
     __tablename__ = "weak_topics"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, nullable=False, index=True)
-    course_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    course_id = Column(Integer, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True)
     topic = Column(String, nullable=False, index=True)
     question_frequency = Column(Integer, default=0, nullable=False)
     quiz_average = Column(Float, nullable=True)

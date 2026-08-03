@@ -62,6 +62,28 @@ def get_student_dashboard(
             2,
         )
 
+    like_count = (
+        db.query(ChatHistory)
+        .filter(
+            ChatHistory.user_id == user_id,
+            ChatHistory.course_id == course_id,
+            ChatHistory.feedback == "like",
+        )
+        .count()
+    )
+    dislike_count = (
+        db.query(ChatHistory)
+        .filter(
+            ChatHistory.user_id == user_id,
+            ChatHistory.course_id == course_id,
+            ChatHistory.feedback == "dislike",
+        )
+        .count()
+    )
+    feedback_rate = (
+        round(like_count / (like_count + dislike_count), 2) if (like_count + dislike_count) else None
+    )
+
     return {
         "total_questions": total_questions,
         "questions_by_topic": questions_by_topic,
@@ -83,4 +105,7 @@ def get_student_dashboard(
             for item in quiz_results
         ],
         "average_quiz_score": average_quiz_score,
+        "feedback_rate": feedback_rate,
+        "feedback_like_count": like_count,
+        "feedback_dislike_count": dislike_count,
     }

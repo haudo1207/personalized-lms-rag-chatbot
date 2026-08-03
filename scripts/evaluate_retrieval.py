@@ -45,10 +45,12 @@ GOLD_CSV = EVAL_DIR / "gold_chunks.csv"
 OUT_DIR = Path("reports/eval")
 
 CONFIGS = {
-    "A": {"label": "Dense (vector only)", "use_bm25": False, "use_reranker": False, "use_multi_query": False},
-    "B": {"label": "Hybrid (vector + BM25 + RRF)", "use_bm25": True, "use_reranker": False, "use_multi_query": False},
-    "C": {"label": "Hybrid + Reranker", "use_bm25": True, "use_reranker": True, "use_multi_query": False},
-    "D": {"label": "Hybrid + Reranker + Multi-Query", "use_bm25": True, "use_reranker": True, "use_multi_query": True},
+    "A": {"label": "Dense (vector only)", "use_bm25": False, "use_reranker": False, "use_multi_query": False, "use_query_decomposition": False},
+    "B": {"label": "Hybrid (vector + BM25 + RRF)", "use_bm25": True, "use_reranker": False, "use_multi_query": False, "use_query_decomposition": False},
+    "C": {"label": "Hybrid + Reranker", "use_bm25": True, "use_reranker": True, "use_multi_query": False, "use_query_decomposition": False},
+    "D": {"label": "Hybrid + Reranker + Multi-Query", "use_bm25": True, "use_reranker": True, "use_multi_query": True, "use_query_decomposition": False},
+    "E": {"label": "Hybrid + Reranker + Query Decomposition", "use_bm25": True, "use_reranker": True, "use_multi_query": False, "use_query_decomposition": True},
+    "F": {"label": "Hybrid + Reranker + On-demand routing (auto QD + auto MQ)", "use_bm25": True, "use_reranker": True, "use_multi_query": "auto", "use_query_decomposition": "auto"},
 }
 
 K_VALUES = (1, 3, 5, 10)
@@ -146,9 +148,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--course-id", type=int, default=1)
     parser.add_argument("--repeats", type=int, default=3)
-    parser.add_argument("--configs", default="A,B,C,D")
+    parser.add_argument("--configs", default="A,B,C,D,E,F")
     parser.add_argument("--allow-stale-gold", action="store_true")
     parser.add_argument("--out-dir", default=str(OUT_DIR))
+    parser.add_argument(
+        "--split", choices=["dev", "test", "all"], default="all",
+        help="Filter to eval_questions.csv's 'split' column. Use 'dev' while tuning anything "
+             "(chunking, thresholds, config choices); reserve 'test' for a single final reported "
+             "number so it isn't in-sample. Older per-query CSVs predate this column and won't have it.",
+    )
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -165,6 +173,8 @@ def main() -> None:
 
     questions = load_questions()
     questions = [q for q in questions if int(q["course_id"]) == args.course_id]
+    if args.split != "all":
+        questions = [q for q in questions if q.get("split") == args.split]
     gold = load_gold(args.course_id)
 
     if not gold:
@@ -207,8 +217,12 @@ def main() -> None:
     for rep in range(args.repeats):
         for cfg_key in config_keys:
             cfg = CONFIGS[cfg_key]
-            for q in questions:
+            print(f"[repeat {rep + 1}/{args.repeats}] config {cfg_key} ({cfg['label']}): "
+                  f"0/{len(questions)}", flush=True)
+            for qi, q in enumerate(questions, start=1):
                 qid = q["id"]
+                if qi == len(questions) or qi % 10 == 0:
+                    print(f"[repeat {rep + 1}/{args.repeats}] config {cfg_key}: {qi}/{len(questions)}", flush=True)
                 gold_keys = gold.get(qid, set())
                 timings: dict[str, float] = {}
                 ranked = retrieve_ranked(
@@ -218,6 +232,7 @@ def main() -> None:
                     use_bm25=cfg["use_bm25"],
                     use_reranker=cfg["use_reranker"],
                     use_multi_query=cfg["use_multi_query"],
+                    use_query_decomposition=cfg["use_query_decomposition"],
                     timings=timings,
                 )
                 retrieved_keys = [chunk_key(c) for c in ranked]
@@ -335,6 +350,7 @@ def main() -> None:
         "collection_count": n_total,
         "n_documents_course": len({c["metadata"]["document_id"] for c in course_chunks}),
         "n_chunks_course": len(course_chunks),
+        "split": args.split,
         "n_questions": len(questions),
         "n_questions_with_gold": n_with_gold,
         "repeats": args.repeats,
@@ -371,7 +387,8 @@ def main() -> None:
             f"{row['latency_mean_ms']:.0f} / {row['latency_median_ms']:.0f} / {row['latency_p95_ms']:.0f} |"
         )
     lines.append("")
-    lines.append(f"n = {n_with_gold} of {len(questions)} questions have gold labels "
+    lines.append(f"split={args.split}. "
+                 f"n = {n_with_gold} of {len(questions)} questions have gold labels "
                  f"(metrics computed on the {n_with_gold} with labels). "
                  f"Chunk size {run_metadata['chunk_size']}/overlap {run_metadata['overlap']}. "
                  f"Commit `{run_metadata['git_commit']}`. Corpus: {run_metadata['n_documents_course']} document(s), "

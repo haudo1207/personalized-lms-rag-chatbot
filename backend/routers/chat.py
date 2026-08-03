@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict
@@ -12,7 +13,7 @@ from backend.models.weak_topic import WeakTopic
 from backend.security_deps import get_current_user, require_self_or_admin, verify_course_access
 from backend.services.personalization import build_user_profile
 from backend.services.rag_pipeline import ask_personalized_rag
-from backend.services.topic_classifier import classify_topic
+from backend.services.topic_taxonomy import classify_topic
 from backend.services.weak_topic_detector import detect_weak_topic
 
 
@@ -38,7 +39,12 @@ class ChatHistoryRead(BaseModel):
     topic: str | None
     sources: str | None
     latency: str | None
+    feedback: str | None
     created_at: datetime
+
+
+class FeedbackUpdate(BaseModel):
+    feedback: Literal["like", "dislike"] | None
 
 
 class WeakTopicRead(BaseModel):
@@ -62,7 +68,7 @@ def chat(
     require_self_or_admin(request.user_id, current_user)
     verify_course_access(request.course_id, current_user, db)
 
-    topic = classify_topic(request.question)
+    topic = classify_topic(request.question, request.course_id, db)
     user_profile = build_user_profile(
         db=db,
         user_id=request.user_id,
@@ -178,3 +184,40 @@ def list_weak_topics(
         .order_by(WeakTopic.created_at.desc())
         .all()
     )
+
+
+@router.patch("/{chat_id}/feedback", response_model=ChatHistoryRead)
+def set_feedback(
+    chat_id: int,
+    update: FeedbackUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ChatHistory:
+    chat_record = db.query(ChatHistory).filter(ChatHistory.id == chat_id).first()
+    if not chat_record:
+        raise HTTPException(status_code=404, detail="Chat message not found.")
+    require_self_or_admin(chat_record.user_id, current_user)
+
+    chat_record.feedback = update.feedback
+    db.commit()
+    db.refresh(chat_record)
+    return chat_record
+
+
+@router.delete("/history/{user_id}/{course_id}")
+def clear_history(
+    user_id: int,
+    course_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict[str, object]:
+    require_self_or_admin(user_id, current_user)
+    verify_course_access(course_id, current_user, db)
+
+    deleted = (
+        db.query(ChatHistory)
+        .filter(ChatHistory.user_id == user_id, ChatHistory.course_id == course_id)
+        .delete()
+    )
+    db.commit()
+    return {"message": "Chat history cleared", "deleted_count": deleted}

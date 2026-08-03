@@ -57,6 +57,10 @@ def get_collection_count() -> int:
     return collection.count()
 
 
+def delete_document_chunks(document_id: int) -> None:
+    collection.delete(where={"document_id": str(document_id)})
+
+
 def search_chunks(
     question: str,
     course_id: int,
@@ -111,6 +115,43 @@ def get_all_chunks_for_course(
                 "text": documents[idx],
                 "metadata": metadatas[idx],
             })
+    return output
+
+
+def get_chunk_embeddings_for_course(course_id: int) -> list[dict[str, object]]:
+    """Like get_all_chunks_for_course, but also returns each chunk's already-
+    computed embedding (stored in Chroma at ingest time -- no re-embedding
+    needed). Used by topic_taxonomy.py to cluster a course's full chunk set
+    by topic; kept separate from get_all_chunks_for_course so BM25 indexing
+    (its main caller, on every retrieval) doesn't pay for embeddings it
+    doesn't use.
+
+    Fetches one id at a time rather than a single batched `where`/`ids`
+    query. Observed empirically on this project's dev vector store: batched
+    `.get(..., include=["embeddings"])` calls fail outright with a Chroma
+    internal error ("Error finding id") on this ChromaDB version whenever
+    ANY id in the batch has no embedding vector actually stored (metadata/
+    documents survive independently of the embedding in Chroma's storage,
+    so a chunk can exist without one -- e.g. from being upserted mid-failure
+    during repeated re-indexing). One-at-a-time isolates the bad ids so they
+    can be skipped instead of taking down the whole fetch; ~583 individual
+    local .get() calls still completes in well under a second."""
+    ids = [chunk["chunk_id"] for chunk in get_all_chunks_for_course(course_id)]
+
+    output: list[dict[str, object]] = []
+    for cid in ids:
+        try:
+            res = collection.get(ids=[cid], include=["embeddings", "documents", "metadatas"])
+        except Exception:
+            continue
+        if not res.get("ids") or res.get("embeddings") is None or len(res["embeddings"]) == 0:
+            continue
+        output.append({
+            "chunk_id": res["ids"][0],
+            "text": res["documents"][0],
+            "metadata": res["metadatas"][0],
+            "embedding": res["embeddings"][0],
+        })
     return output
 
 

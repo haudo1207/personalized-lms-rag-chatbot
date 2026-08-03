@@ -4,7 +4,6 @@ from backend.services.llm_service import generate_answer
 from backend.services.prompt_template import (
     INSUFFICIENT_INFORMATION_ANSWER,
     build_personalized_rag_prompt,
-    build_rag_prompt,
 )
 from backend.services.retriever import retrieve_relevant_chunks
 
@@ -77,49 +76,6 @@ Câu hỏi độc lập:"""
     return question
 
 
-def ask_rag(
-    question: str,
-    course_id: int,
-    top_k: int = 3,
-    document_ids: list[int] | None = None,
-    chat_history: list[dict[str, str]] | None = None,
-) -> dict[str, object]:
-    start_time = time.time()
-
-    # Reformulate question if history exists
-    search_query = reformulate_question(question, chat_history)
-
-    chunks = retrieve_relevant_chunks(
-        question=search_query,
-        course_id=course_id,
-        top_k=top_k,
-        document_ids=document_ids,
-        use_multi_query=False,
-    )
-    sources = _build_sources(chunks)
-
-    if not chunks:
-        latency = round(time.time() - start_time, 2)
-        return {
-            "answer": INSUFFICIENT_INFORMATION_ANSWER,
-            "sources": sources,
-            "latency": latency,
-            "search_query": search_query,
-        }
-
-    context = format_context(chunks)
-    prompt = build_rag_prompt(question=question, context=context)
-    answer = generate_answer(prompt)
-    latency = round(time.time() - start_time, 2)
-
-    return {
-        "answer": answer,
-        "sources": sources,
-        "latency": latency,
-        "search_query": search_query,
-    }
-
-
 def ask_personalized_rag(
     question: str,
     course_id: int,
@@ -133,12 +89,22 @@ def ask_personalized_rag(
     # Reformulate question if history exists
     search_query = reformulate_question(question, chat_history)
 
+    # Multi-Query stays off by default. Paired significance test on the dev
+    # split (scripts/eval_significance.py, n=40, reciprocal rank, config C vs
+    # D): mean 0.807 vs 0.721 favoring plain Hybrid+Reranker, Wilcoxon p=0.0498
+    # but the 95% paired bootstrap CI on the difference is [-0.005, +0.192] --
+    # right on the edge, not a clean "scores worse" result. What IS unambiguous
+    # is latency: 665ms vs 7143ms mean, a >10x cost for a quality gain that
+    # isn't clearly real. Keeping only Query Decomposition on-demand, which is
+    # cheap to gate (regex heuristic, no LLM cost when it doesn't fire) and
+    # targets a real, common study-question pattern (comparison questions).
     chunks = retrieve_relevant_chunks(
         question=search_query,
         course_id=course_id,
         top_k=top_k,
         document_ids=document_ids,
         use_multi_query=False,
+        use_query_decomposition="auto",
     )
     sources = _build_sources(chunks)
 
@@ -166,7 +132,3 @@ def ask_personalized_rag(
         "latency": latency,
         "search_query": search_query,
     }
-
-
-def answer_question(question: str) -> dict[str, object]:
-    return ask_rag(question=question, course_id=1)

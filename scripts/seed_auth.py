@@ -31,10 +31,7 @@ from backend.models.chat_history import ChatHistory  # noqa: E402
 from backend.models.course import Course  # noqa: E402
 from backend.models.document import Document  # noqa: E402
 from backend.models.quiz_result import QuizResult  # noqa: E402
-from backend.models.recommendation_history import RecommendationHistory  # noqa: E402
 from backend.models.user import User  # noqa: E402
-from backend.models.user_course import UserCourse  # noqa: E402
-from backend.models.user_profile import UserProfile  # noqa: E402
 from backend.models.weak_topic import WeakTopic  # noqa: E402
 from backend.services.auth_service import hash_password  # noqa: E402
 
@@ -98,21 +95,19 @@ def seed_accounts() -> None:
         db.commit()
         db.refresh(student)
 
-        first_course = db.query(Course).order_by(Course.id).first()
-        if first_course:
-            enrolled = (
-                db.query(UserCourse)
-                .filter(UserCourse.user_id == student.id, UserCourse.course_id == first_course.id)
-                .first()
-            )
-            if not enrolled:
-                db.add(UserCourse(user_id=student.id, course_id=first_course.id))
+        # Ownership model: give the demo student one owned course so the app
+        # isn't empty on first login (there is no enrollment step anymore).
+        owns_a_course = db.query(Course).filter(Course.owner_id == student.id).first()
+        if not owns_a_course:
+            ownerless = db.query(Course).filter(Course.owner_id.is_(None)).order_by(Course.id).first()
+            if ownerless:
+                ownerless.owner_id = student.id
                 db.commit()
-                print(f"[ok] Enrolled {STUDENT_EMAIL} in course '{first_course.course_name}'.")
+                print(f"[ok] Assigned course '{ownerless.course_name}' to {STUDENT_EMAIL}.")
             else:
-                print(f"[skip] {STUDENT_EMAIL} already enrolled in '{first_course.course_name}'.")
+                print(f"[warn] No ownerless course exists yet -- nothing to assign to {STUDENT_EMAIL}.")
         else:
-            print("[warn] No course exists yet -- nothing to enroll the demo student in.")
+            print(f"[skip] {STUDENT_EMAIL} already owns a course.")
     finally:
         db.close()
 

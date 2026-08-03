@@ -98,6 +98,12 @@ def main() -> None:
     parser.add_argument("--reset-scope", choices=["all", "course"], default="all")
     parser.add_argument("--skip", action="append", default=[], help="glob pattern(s) under data/raw to skip")
     parser.add_argument("--yes", action="store_true", help="proceed without interactive confirmation")
+    parser.add_argument("--percentile", type=float, default=None,
+                         help="override semantic chunking breakpoint percentile (default: chunking.py's constant)")
+    parser.add_argument("--overlap-sentences", type=int, default=None,
+                         help="override semantic chunking sentence overlap (default: chunking.py's constant)")
+    parser.add_argument("--fixed-size", action="store_true",
+                         help="use plain fixed-size chunking instead of semantic chunking")
     args = parser.parse_args()
 
     RAW_DIR.mkdir(parents=True, exist_ok=True)
@@ -117,6 +123,10 @@ def main() -> None:
         print(f"No supported files ({sorted(SUPPORTED_EXTENSIONS)}) found in {RAW_DIR}.")
         sys.exit(1)
 
+    if args.percentile is not None:
+        print(f"Semantic chunking breakpoint percentile override: {args.percentile}")
+    if args.overlap_sentences is not None:
+        print(f"Semantic chunking overlap_sentences override: {args.overlap_sentences}")
     print(f"Manifest ({len(files)} file(s), course_id={args.course_id}):")
     for f in files:
         print(f"  - {f.name} ({f.stat().st_size} bytes)")
@@ -170,11 +180,24 @@ def main() -> None:
         processed_path = PROCESSED_DIR / f"{document.id}_{path.stem}.txt"
         _write_processed_text(processed_path, cleaned_pages)
 
+        chunk_kwargs = {}
+        if args.percentile is not None:
+            chunk_kwargs["percentile"] = args.percentile
+        if args.overlap_sentences is not None:
+            chunk_kwargs["overlap_sentences"] = args.overlap_sentences
+        if args.fixed_size:
+            chunk_kwargs["use_semantic"] = False
+        def _print_progress(page_num: int, total: int, _name=path.name) -> None:
+            if page_num == 1 or page_num == total or page_num % 10 == 0:
+                print(f"  [chunking] {_name}: page {page_num}/{total}")
+
         chunks = create_chunks(
             document_id=document.id,
             course_id=args.course_id,
             document_name=path.name,
             pages=cleaned_pages,
+            progress_callback=_print_progress,
+            **chunk_kwargs,
         )
         count = add_chunks_to_vector_store(chunks)
 

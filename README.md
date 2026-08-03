@@ -38,7 +38,7 @@ Hệ thống chatbot hỏi đáp tài liệu học tập cho sinh viên sử d�
 ## Công nghệ sử dụng
 
 - Python, FastAPI, Streamlit
-- SQLite + SQLAlchemy + Alembic (migration)
+- SQLite + SQLAlchemy (schema tạo bằng `Base.metadata.create_all()`, không dùng migration tool)
 - ChromaDB (vector store)
 - Sentence-Transformers (embedding đa ngôn ngữ + Cross-Encoder reranker)
 - underthesea (tách câu tiếng Việt), scikit-learn (KMeans clustering)
@@ -64,7 +64,6 @@ backend/
                     auth_service, llm_service, prompt_template
   security_deps.py JWT auth + ownership/role dependency checks
   config.py        Settings (.env)
-alembic/           Schema migrations
 app/
   streamlit_app.py Streamlit UI entrypoint (login + navigation)
   pages/           home, chat, documents, quiz, analytics, settings

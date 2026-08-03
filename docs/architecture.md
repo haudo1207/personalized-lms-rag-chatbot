@@ -39,7 +39,7 @@ AI Service Layer (backend/services/)
   |-- Question Suggester
   |
   v
-SQLite (SQLAlchemy + Alembic) + ChromaDB
+SQLite (SQLAlchemy) + ChromaDB
 ```
 
 ## Xác thực và phân quyền

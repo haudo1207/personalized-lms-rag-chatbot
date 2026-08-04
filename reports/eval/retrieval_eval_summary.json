@@ -1,7 +1,7 @@
 {
   "run_metadata": {
     "timestamp_utc": null,
-    "git_commit": "0cc1baa",
+    "git_commit": "78cb6bd",
     "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
     "chunk_size": 700,
     "overlap": 100,
@@ -11,11 +11,11 @@
     "collection_count": 1075,
     "n_documents_course": 2,
     "n_chunks_course": 579,
-    "split": "dev",
-    "n_questions": 40,
-    "n_questions_with_gold": 40,
+    "split": "all",
+    "n_questions": 50,
+    "n_questions_with_gold": 50,
     "repeats": 1,
-    "bm25_build_ms_oneoff": 105.9,
+    "bm25_build_ms_oneoff": 210.4,
     "python_version": "3.12.10",
     "platform_processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
     "torch_version": "2.11.0+cpu",
@@ -24,127 +24,371 @@
   },
   "configs": [
     {
+      "config": "A",
+      "label": "Dense (vector only)",
+      "n_questions_with_gold": 50,
+      "hitrate_at_1": 0.26,
+      "hitrate_at_1_ci95": [
+        0.159,
+        0.396
+      ],
+      "hitrate_at_3": 0.36,
+      "hitrate_at_3_ci95": [
+        0.241,
+        0.499
+      ],
+      "hitrate_at_5": 0.42,
+      "hitrate_at_5_ci95": [
+        0.294,
+        0.558
+      ],
+      "hitrate_at_10": 0.54,
+      "hitrate_at_10_ci95": [
+        0.404,
+        0.67
+      ],
+      "recall_at_10_macro": 0.32313342394320654,
+      "mrr_at_10": 0.3331031746031746,
+      "precision_at_3": 0.2533333333333333,
+      "ndcg_at_10": 0.37820479216176056,
+      "latency_mean_ms": 41.84290799545124,
+      "latency_median_ms": 35.665899980813265,
+      "latency_p95_ms": 77.29559997096658,
+      "stage_ms": {
+        "multi_query_ms": 0.001468001864850521,
+        "dense_ms": 41.81918800342828,
+        "bm25_ms": 0.0,
+        "fusion_ms": 0.0,
+        "rerank_ms": 0.0
+      }
+    },
+    {
+      "config": "B",
+      "label": "Hybrid (vector + BM25 + RRF)",
+      "n_questions_with_gold": 50,
+      "hitrate_at_1": 0.36,
+      "hitrate_at_1_ci95": [
+        0.241,
+        0.499
+      ],
+      "hitrate_at_3": 0.66,
+      "hitrate_at_3_ci95": [
+        0.522,
+        0.776
+      ],
+      "hitrate_at_5": 0.8,
+      "hitrate_at_5_ci95": [
+        0.67,
+        0.888
+      ],
+      "hitrate_at_10": 0.94,
+      "hitrate_at_10_ci95": [
+        0.838,
+        0.979
+      ],
+      "recall_at_10_macro": 0.6607331774150828,
+      "mrr_at_10": 0.5547142857142857,
+      "precision_at_3": 0.4533333333333333,
+      "ndcg_at_10": 0.6389841953691351,
+      "latency_mean_ms": 51.225574002601206,
+      "latency_median_ms": 45.60389998368919,
+      "latency_p95_ms": 116.3867999566719,
+      "stage_ms": {
+        "multi_query_ms": 0.0019039958715438843,
+        "dense_ms": 44.69715401297435,
+        "bm25_ms": 1.0707939928397536,
+        "fusion_ms": 5.453300001099706,
+        "rerank_ms": 0.0
+      }
+    },
+    {
       "config": "C",
       "label": "Hybrid + Reranker",
-      "n_questions_with_gold": 40,
-      "hitrate_at_1": 0.725,
+      "n_questions_with_gold": 50,
+      "hitrate_at_1": 0.7,
       "hitrate_at_1_ci95": [
-        0.572,
-        0.839
+        0.562,
+        0.809
       ],
-      "hitrate_at_3": 0.875,
+      "hitrate_at_3": 0.84,
       "hitrate_at_3_ci95": [
-        0.739,
-        0.945
+        0.715,
+        0.917
       ],
-      "hitrate_at_5": 0.875,
+      "hitrate_at_5": 0.84,
       "hitrate_at_5_ci95": [
-        0.739,
-        0.945
+        0.715,
+        0.917
       ],
-      "hitrate_at_10": 0.95,
+      "hitrate_at_10": 0.94,
       "hitrate_at_10_ci95": [
-        0.835,
-        0.986
+        0.838,
+        0.979
       ],
-      "recall_at_10_macro": 0.6593993777517595,
-      "mrr_at_10": 0.8066964285714286,
-      "precision_at_3": 0.475,
-      "ndcg_at_10": 0.82768402143847,
-      "latency_mean_ms": 664.9213699944085,
-      "latency_median_ms": 662.2132000047714,
-      "latency_p95_ms": 819.4623000454158,
+      "recall_at_10_macro": 0.6607331774150828,
+      "mrr_at_10": 0.7767460317460317,
+      "precision_at_3": 0.4533333333333333,
+      "ndcg_at_10": 0.7970626649823431,
+      "latency_mean_ms": 583.0199419916607,
+      "latency_median_ms": 559.2398999724537,
+      "latency_p95_ms": 793.1341000366956,
       "stage_ms": {
-        "multi_query_ms": 0.0016724865417927504,
-        "dense_ms": 44.92671500775032,
-        "bm25_ms": 1.191499992273748,
-        "fusion_ms": 5.427572515327483,
-        "rerank_ms": 613.3680024882779
+        "multi_query_ms": 0.0009459932334721088,
+        "dense_ms": 32.406596005894244,
+        "bm25_ms": 0.9214619942940772,
+        "fusion_ms": 5.215647995937616,
+        "rerank_ms": 544.4708600104786
       }
     },
     {
       "config": "D",
       "label": "Hybrid + Reranker + Multi-Query",
-      "n_questions_with_gold": 40,
-      "hitrate_at_1": 0.65,
+      "n_questions_with_gold": 50,
+      "hitrate_at_1": 0.66,
       "hitrate_at_1_ci95": [
-        0.495,
-        0.779
+        0.522,
+        0.776
       ],
-      "hitrate_at_3": 0.775,
+      "hitrate_at_3": 0.78,
       "hitrate_at_3_ci95": [
-        0.625,
-        0.877
+        0.648,
+        0.872
       ],
       "hitrate_at_5": 0.8,
       "hitrate_at_5_ci95": [
-        0.652,
-        0.895
+        0.67,
+        0.888
       ],
-      "hitrate_at_10": 0.825,
+      "hitrate_at_10": 0.84,
       "hitrate_at_10_ci95": [
-        0.68,
-        0.913
+        0.715,
+        0.917
       ],
-      "recall_at_10_macro": 0.5557138618787436,
-      "mrr_at_10": 0.7212500000000001,
-      "precision_at_3": 0.4416666666666667,
-      "ndcg_at_10": 0.7380738746313019,
-      "latency_mean_ms": 7142.619165001088,
-      "latency_median_ms": 7205.444500083104,
-      "latency_p95_ms": 10068.559999926947,
+      "recall_at_10_macro": 0.6009558338436216,
+      "mrr_at_10": 0.7261111111111112,
+      "precision_at_3": 0.44,
+      "ndcg_at_10": 0.7358969334564329,
+      "latency_mean_ms": 6879.679187987931,
+      "latency_median_ms": 6645.678299944848,
+      "latency_p95_ms": 9816.455599968322,
       "stage_ms": {
-        "multi_query_ms": 6376.337557504303,
-        "dense_ms": 157.6773274980951,
-        "bm25_ms": 1.4107074966887012,
-        "fusion_ms": 17.65673000481911,
-        "rerank_ms": 589.5319150033174
+        "multi_query_ms": 6211.5350879961625,
+        "dense_ms": 140.84553600056097,
+        "bm25_ms": 1.2576279952190816,
+        "fusion_ms": 19.820977998897433,
+        "rerank_ms": 506.21532598976046
+      }
+    },
+    {
+      "config": "E",
+      "label": "Hybrid + Reranker + Query Decomposition",
+      "n_questions_with_gold": 50,
+      "hitrate_at_1": 0.7,
+      "hitrate_at_1_ci95": [
+        0.562,
+        0.809
+      ],
+      "hitrate_at_3": 0.84,
+      "hitrate_at_3_ci95": [
+        0.715,
+        0.917
+      ],
+      "hitrate_at_5": 0.84,
+      "hitrate_at_5_ci95": [
+        0.715,
+        0.917
+      ],
+      "hitrate_at_10": 0.94,
+      "hitrate_at_10_ci95": [
+        0.838,
+        0.979
+      ],
+      "recall_at_10_macro": 0.6567331774150829,
+      "mrr_at_10": 0.7767460317460317,
+      "precision_at_3": 0.44666666666666666,
+      "ndcg_at_10": 0.7993179617906722,
+      "latency_mean_ms": 3441.4640660001896,
+      "latency_median_ms": 2576.8564000027254,
+      "latency_p95_ms": 6831.479200045578,
+      "stage_ms": {
+        "multi_query_ms": 2809.5675540040247,
+        "dense_ms": 113.06487201014534,
+        "bm25_ms": 1.8489979882724583,
+        "fusion_ms": 16.443928005173802,
+        "rerank_ms": 500.5333999940194
+      }
+    },
+    {
+      "config": "F",
+      "label": "Hybrid + Reranker + On-demand routing (auto QD + auto MQ)",
+      "n_questions_with_gold": 50,
+      "hitrate_at_1": 0.7,
+      "hitrate_at_1_ci95": [
+        0.562,
+        0.809
+      ],
+      "hitrate_at_3": 0.84,
+      "hitrate_at_3_ci95": [
+        0.715,
+        0.917
+      ],
+      "hitrate_at_5": 0.86,
+      "hitrate_at_5_ci95": [
+        0.738,
+        0.93
+      ],
+      "hitrate_at_10": 0.9,
+      "hitrate_at_10_ci95": [
+        0.786,
+        0.957
+      ],
+      "recall_at_10_macro": 0.6451118167496045,
+      "mrr_at_10": 0.7727777777777777,
+      "precision_at_3": 0.44,
+      "ndcg_at_10": 0.7848430110119472,
+      "latency_mean_ms": 2997.1659020124935,
+      "latency_median_ms": 591.3667000131682,
+      "latency_p95_ms": 8419.422499951907,
+      "stage_ms": {
+        "multi_query_ms": 95.7295099971816,
+        "dense_ms": 30.352562002371997,
+        "bm25_ms": 0.8856639987789094,
+        "fusion_ms": 4.704892002046108,
+        "rerank_ms": 486.9195620017126
       }
     }
   ],
   "topic_breakdown": {
-    "C": {
+    "A": {
       "Chuẩn hóa cơ sở dữ liệu": {
-        "n": 10,
-        "hitrate_at_3": 0.7
+        "n": 12,
+        "hitrate_at_3": 0.3333333333333333
       },
       "ERD": {
-        "n": 7,
-        "hitrate_at_3": 0.8571428571428571
+        "n": 9,
+        "hitrate_at_3": 0.3333333333333333
       },
       "Khóa chính": {
-        "n": 8,
-        "hitrate_at_3": 1.0
+        "n": 9,
+        "hitrate_at_3": 0.3333333333333333
       },
       "Khóa ngoại": {
-        "n": 8,
+        "n": 9,
+        "hitrate_at_3": 0.3333333333333333
+      },
+      "SQL JOIN": {
+        "n": 11,
+        "hitrate_at_3": 0.45454545454545453
+      }
+    },
+    "B": {
+      "Chuẩn hóa cơ sở dữ liệu": {
+        "n": 12,
+        "hitrate_at_3": 0.5833333333333334
+      },
+      "ERD": {
+        "n": 9,
+        "hitrate_at_3": 0.5555555555555556
+      },
+      "Khóa chính": {
+        "n": 9,
+        "hitrate_at_3": 0.7777777777777778
+      },
+      "Khóa ngoại": {
+        "n": 9,
+        "hitrate_at_3": 0.5555555555555556
+      },
+      "SQL JOIN": {
+        "n": 11,
+        "hitrate_at_3": 0.8181818181818182
+      }
+    },
+    "C": {
+      "Chuẩn hóa cơ sở dữ liệu": {
+        "n": 12,
+        "hitrate_at_3": 0.75
+      },
+      "ERD": {
+        "n": 9,
+        "hitrate_at_3": 0.7777777777777778
+      },
+      "Khóa chính": {
+        "n": 9,
+        "hitrate_at_3": 0.8888888888888888
+      },
+      "Khóa ngoại": {
+        "n": 9,
         "hitrate_at_3": 1.0
       },
       "SQL JOIN": {
-        "n": 7,
-        "hitrate_at_3": 0.8571428571428571
+        "n": 11,
+        "hitrate_at_3": 0.8181818181818182
       }
     },
     "D": {
       "Chuẩn hóa cơ sở dữ liệu": {
-        "n": 10,
-        "hitrate_at_3": 0.6
+        "n": 12,
+        "hitrate_at_3": 0.75
       },
       "ERD": {
-        "n": 7,
-        "hitrate_at_3": 0.7142857142857143
+        "n": 9,
+        "hitrate_at_3": 0.6666666666666666
       },
       "Khóa chính": {
-        "n": 8,
-        "hitrate_at_3": 0.875
+        "n": 9,
+        "hitrate_at_3": 0.7777777777777778
       },
       "Khóa ngoại": {
-        "n": 8,
-        "hitrate_at_3": 0.875
+        "n": 9,
+        "hitrate_at_3": 0.8888888888888888
       },
       "SQL JOIN": {
-        "n": 7,
-        "hitrate_at_3": 0.8571428571428571
+        "n": 11,
+        "hitrate_at_3": 0.8181818181818182
+      }
+    },
+    "E": {
+      "Chuẩn hóa cơ sở dữ liệu": {
+        "n": 12,
+        "hitrate_at_3": 0.75
+      },
+      "ERD": {
+        "n": 9,
+        "hitrate_at_3": 0.7777777777777778
+      },
+      "Khóa chính": {
+        "n": 9,
+        "hitrate_at_3": 0.8888888888888888
+      },
+      "Khóa ngoại": {
+        "n": 9,
+        "hitrate_at_3": 1.0
+      },
+      "SQL JOIN": {
+        "n": 11,
+        "hitrate_at_3": 0.8181818181818182
+      }
+    },
+    "F": {
+      "Chuẩn hóa cơ sở dữ liệu": {
+        "n": 12,
+        "hitrate_at_3": 0.8333333333333334
+      },
+      "ERD": {
+        "n": 9,
+        "hitrate_at_3": 0.7777777777777778
+      },
+      "Khóa chính": {
+        "n": 9,
+        "hitrate_at_3": 0.8888888888888888
+      },
+      "Khóa ngoại": {
+        "n": 9,
+        "hitrate_at_3": 0.8888888888888888
+      },
+      "SQL JOIN": {
+        "n": 11,
+        "hitrate_at_3": 0.8181818181818182
       }
     }
   }
